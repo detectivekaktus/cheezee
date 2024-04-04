@@ -1,5 +1,8 @@
 CC = gcc
 CFLAGS = -Wall -Wextra -Werror -pedantic -ggdb
 
-all:
-	$(CC) $(CFLAGS) -o main src/main.c
+win:
+	$(CC) $(CFLAGS) -o main src/main.c -I./include/win -L./include/win -lncurses -DNCURSES_STATIC
+
+psx:
+	$(CC) $(CFLAGS) -o main src/main.c -lncurses
