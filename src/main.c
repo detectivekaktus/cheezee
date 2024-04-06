@@ -36,8 +36,8 @@ int main(void) {
   if (!has_colors()) CRASH("Your terminal does not support colors.");
 
   program->main_menu = malloc(sizeof(WIN));
-  program->main_menu->y = program->y * 0.3;
-  program->main_menu->x = program->x * 0.3;
+  program->main_menu->y = program->y * 0.4;
+  program->main_menu->x = program->x * 0.4;
   program->main_menu->win = newwin(program->main_menu->y, program->main_menu->x, (program->y - program->main_menu->y) / 2, (program->x - program->main_menu->x) / 2);
   wborder(program->main_menu->win, ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ');
   keypad(program->main_menu->win, true);
@@ -76,15 +76,15 @@ int main(void) {
       case ENTER: {
         switch (option) {
           case 0: {
-            assert(false); // not implemented
+            ASSERT(false, "not implemented.\n");
           }
           case 1: {
-            assert(false); // not implemented
+            ASSERT(false, "not implemented.\n");
           }
           case 2: {
             WIN *credits;
             WIN *credits_text;
-            CREATE_CENTERED_WINDOW(program, credits, program->y * 0.5, program->x * 0.4);
+            CREATE_CENTERED_WINDOW(program, credits, program->y * 0.6, program->x * 0.5);
             box(credits->win, 0, 0);
             CREATE_WINDOW(credits_text, credits->y * 0.8, credits->x * 0.8, credits->start_y + 3, credits->start_x + 5);
             mvwprintw(credits_text->win, 0, 0, "Hi there!");
@@ -112,7 +112,7 @@ int main(void) {
             break;
           }
           default:
-            assert(false); // unreachable
+            ASSERT(false, "unreachable.\n");
             break;
         }
         break;

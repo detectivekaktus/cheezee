@@ -6,13 +6,22 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <string.h>
-#include <assert.h>
 
 #define CRASH(msg, ...) \
   do { \
     fprintf(stderr, msg, ##__VA_ARGS__); \
     endwin(); \
     exit(1); \
+  } while(0)
+
+#define ASSERT(cond, msg, ...) \
+  do { \
+    if (!cond) { \
+      endwin(); \
+      fprintf(stderr, "Assertion failed at: %s, line %d.\n", __FILE__, __LINE__); \
+      fprintf(stderr, msg, ##__VA_ARGS__); \
+      exit(1); \
+    } \
   } while(0)
 
 typedef struct {
