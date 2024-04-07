@@ -1,11 +1,10 @@
 #include "cheezee.h"
+#include "frontend.h"
 #include "main.h"
 
 void finish(Program *program) {
-  if (program->main_menu) {
-    delwin(program->main_menu->win);
-    free(program->main_menu);
-  }
+  if (program->main_menu) DESTROY_WINDOW(program->main_menu);
+  if (program->board) DESTROY_WINDOW(program->main_menu);
   endwin();
 
   free(program);
@@ -33,12 +32,12 @@ int main(void) {
   cbreak();
   noecho();
   getmaxyx(stdscr, program->y, program->x);
-  if (!has_colors()) CRASH("Your terminal does not support colors.");
+  if (!has_colors()) CRASH("Your terminal does not support colors.\n");
+  if (program->y < TILE_HEIGHT * 8 + 1 || program->x < TILE_WIDTH * 8 + 1) CRASH("Your viewport must be at least %dx%d to run this program.\n", TILE_HEIGHT * 8, TILE_WIDTH * 8);;
 
-  program->main_menu = malloc(sizeof(WIN));
-  program->main_menu->y = program->y * 0.4;
-  program->main_menu->x = program->x * 0.4;
-  program->main_menu->win = newwin(program->main_menu->y, program->main_menu->x, (program->y - program->main_menu->y) / 2, (program->x - program->main_menu->x) / 2);
+  WIN *main_menu;
+  CREATE_CENTERED_WINDOW(program, main_menu, program->y * 0.5, program->x * 0.5);
+  program->main_menu = main_menu;
   wborder(program->main_menu->win, ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ');
   keypad(program->main_menu->win, true);
   wrefresh(program->main_menu->win);
@@ -75,13 +74,17 @@ int main(void) {
       }
       case ENTER: {
         switch (option) {
-          case 0: {
+          case NEW_GAME: {
+            clear();
+            refresh();
+            init_board(program);
+            wgetch(program->board->win);
+            break;
+          }
+          case FEN_POS: {
             ASSERT(false, "not implemented.\n");
           }
-          case 1: {
-            ASSERT(false, "not implemented.\n");
-          }
-          case 2: {
+          case CREDITS: {
             WIN *credits;
             WIN *credits_text;
             CREATE_CENTERED_WINDOW(program, credits, program->y * 0.6, program->x * 0.5);
@@ -91,7 +94,7 @@ int main(void) {
             mvwprintw(credits_text->win, getcury(credits_text->win) + 2, 0, "I'm Artiom Astashonak, a third year high-school student, who's interested in computer science. I made this project to practice my C programming skills, as well as to learn ncurses library.");
             mvwprintw(credits_text->win, getcury(credits_text->win)+ 2, 0, "You can find the source code of this application at: ");
             attron(A_UNDERLINE);
-            wprintw(credits_text->win, "https://github.com/Artiom-Astahonak/cheezee");
+            wprintw(credits_text->win, "https://github.com/Artiom-Astashonak/cheezee");
             attroff(A_UNDERLINE);
             wrefresh(credits->win);
             wrefresh(credits_text->win);
@@ -107,7 +110,7 @@ int main(void) {
             draw_options(program, menu_options, option);
             break;
           }
-          case 3: {
+          case EXIT: {
             finish(program);
             break;
           }

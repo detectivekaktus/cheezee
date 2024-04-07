@@ -72,6 +72,7 @@ typedef struct {
   int y;
 
   WIN *main_menu;
+  WIN *board;
 } Program;
 
 #endif // CHEEZEE_H__
