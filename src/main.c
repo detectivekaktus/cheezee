@@ -1,17 +1,18 @@
+#include "backend.h"
 #include "cheezee.h"
 #include "frontend.h"
 #include "main.h"
 
 void finish(Program *program) {
   if (program->main_menu) DESTROY_WINDOW(program->main_menu);
-  if (program->board) DESTROY_WINDOW(program->main_menu);
+  if (program->board) DESTROY_WINDOW(program->board);
   endwin();
 
   free(program);
   exit(0);
 }
 
-void draw_options(Program *program, char **options, int option) {
+void draw_options(const Program *program, char **options, int option) {
   for (int i = 0; i < 4; i++) {
     if (option == i) {
       wattron(program->main_menu->win, A_REVERSE);
@@ -26,6 +27,7 @@ void draw_options(Program *program, char **options, int option) {
 }
 
 int main(void) {
+  setlocale(LC_ALL, "");
   Program *program = malloc(sizeof(Program));
 
   initscr();
@@ -33,7 +35,7 @@ int main(void) {
   noecho();
   getmaxyx(stdscr, program->y, program->x);
   if (!has_colors()) CRASH("Your terminal does not support colors.\n");
-  if (program->y < TILE_HEIGHT * 8 + 1 || program->x < TILE_WIDTH * 8 + 1) CRASH("Your viewport must be at least %dx%d to run this program.\n", TILE_HEIGHT * 8, TILE_WIDTH * 8);;
+  if (program->y < TILE_HEIGHT * 8 + 2 || program->x < TILE_WIDTH * 8 + 2) CRASH("Your viewport must be at least %dx%d to run this program.\n", TILE_HEIGHT * 8 + 2, TILE_WIDTH * 8 + 2);
 
   WIN *main_menu;
   CREATE_CENTERED_WINDOW(program, main_menu, program->y * 0.5, program->x * 0.5);
@@ -77,12 +79,15 @@ int main(void) {
           case NEW_GAME: {
             clear();
             refresh();
-            init_board(program);
-            wgetch(program->board->win);
+            play(program);
+            clear();
+            refresh();
+            draw_options(program, menu_options, option);
             break;
           }
           case FEN_POS: {
             ASSERT(false, "not implemented.\n");
+            break;
           }
           case CREDITS: {
             WIN *credits;
@@ -102,7 +107,7 @@ int main(void) {
             int key;
             do {
               key = wgetch(credits->win);
-            } while (key != ESCAPE);
+            } while (key != ESCAPE && (key != 'Q' && key != 'q'));
             clear();
             DESTROY_WINDOW(credits);
             DESTROY_WINDOW(credits_text);

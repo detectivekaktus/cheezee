@@ -1,7 +1,7 @@
 CC = gcc
 CFLAGS = -Wall -Wextra -Werror -pedantic -ggdb
-TARGETS = main.o frontend.o
-SOURCE = src/main.c src/frontend.c
+TARGETS = main.o frontend.o backend.o
+SOURCE = src/main.c src/frontend.c src/backend.c
 WIN_LIBS = -I./include/win -L./include/win -lncurses -DNCURSES_STATIC
 PSX_LIBS = -lncurses
 
