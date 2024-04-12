@@ -19,6 +19,8 @@ void init_colors() {
   init_pair(SELECTION, SELECTION_COLOR, COLOR_BLACK);
   init_pair(POSSIBLE_MOVE, POSSIBLE_MOVE_COLOR, COLOR_BLACK);
   init_pair(KING_ATTACK, KING_ATTACK_COLOR, COLOR_BLACK);
+
+  use_default_colors();
 }
 
 void draw_board(Program *program) {
