@@ -3,7 +3,6 @@
 #include "frontend.h"
 #include "main.h"
 
-
 void finish(Program *program) {
   if (program->main_menu) DESTROY_WINDOW(program->main_menu);
   if (program->board) DESTROY_WINDOW(program->board);
