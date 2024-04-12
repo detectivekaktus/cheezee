@@ -3,6 +3,32 @@
 #include "frontend.h"
 
 void play(Program *program) {
+  WIN *help;
+  WIN *help_text;
+  WIN *log;
+  WIN *log_text;
+
+  CREATE_WINDOW(help, ceil(program->y * 0.4), program->x - (TILE_WIDTH * 8 + 2), program->y - (program->y * 0.4), TILE_WIDTH * 8 + 2);
+  CREATE_WINDOW(help_text, help->y * 0.8, help->x * 0.8, help->start_y + 2, help->start_x + 5);
+  wattron(help_text->win, A_REVERSE);
+  wprintw(help_text->win, "\u2190 \u2191 \u2192 \u2193");
+  wattroff(help_text->win, A_REVERSE);
+  wprintw(help_text->win, " move around the board\n\n");
+  wattron(help_text->win, A_REVERSE);
+  wprintw(help_text->win, "Enter");
+  wattroff(help_text->win, A_REVERSE);
+  wprintw(help_text->win, " select and submit an action");
+  box(help->win, 0, 0);
+  wrefresh(help->win);
+  wrefresh(help_text->win);
+
+  CREATE_WINDOW(log, program->y * 0.6, program->x - (TILE_WIDTH * 8 + 2), 0, TILE_WIDTH * 8 + 2);
+  CREATE_WINDOW(log_text, log->y * 0.8, log->x * 0.8, log->start_x + 5, log->start_y + 5);
+  mvwprintw(log->win, 1, 5, "Moves log");
+  box(log->win, 0, 0);
+  wrefresh(log->win);
+  wrefresh(log_text->win);
+
   int **cur_board = start_standard_board();
   int **prev_board = start_standard_board();
 
@@ -12,6 +38,10 @@ void play(Program *program) {
   do {
     input = wgetch(program->board->win);
   } while (input != 'Q' && input != 'q');
+  DESTROY_WINDOW(help);
+  DESTROY_WINDOW(help_text);
+  DESTROY_WINDOW(log);
+  DESTROY_WINDOW(log_text);
   free(cur_board);
   free(prev_board);
 }

@@ -2,6 +2,25 @@
 #include "backend.h"
 #include "cheezee.h"
 
+void init_colors() {
+  start_color();
+  init_color(BOARD_WHITE_COLOR, 578, 578, 578);
+  init_color(BOARD_BLACK_COLOR, 636, 394, 253);
+  init_color(PIECE_WHITE_COLOR, 1000, 1000, 1000);
+  init_color(PIECE_BLACK_COLOR, 58, 50, 46);
+  init_color(SELECTION_COLOR, 58, 539, 378);
+  init_color(POSSIBLE_MOVE_COLOR, 58, 457, 539);
+  init_color(KING_ATTACK_COLOR, 1000, 0, 234);
+  
+  init_pair(BOARD_WHITE, BOARD_WHITE_COLOR, COLOR_BLACK);
+  init_pair(BOARD_BLACK, BOARD_BLACK_COLOR, COLOR_BLACK);
+  init_pair(PIECE_WHITE, PIECE_WHITE_COLOR, COLOR_BLACK);
+  init_pair(PIECE_BLACK, PIECE_BLACK_COLOR, COLOR_BLACK);
+  init_pair(SELECTION, SELECTION_COLOR, COLOR_BLACK);
+  init_pair(POSSIBLE_MOVE, POSSIBLE_MOVE_COLOR, COLOR_BLACK);
+  init_pair(KING_ATTACK, KING_ATTACK_COLOR, COLOR_BLACK);
+}
+
 void draw_board(Program *program) {
   WIN *board;
   CREATE_WINDOW(board, TILE_HEIGHT * 8 + 2, TILE_WIDTH * 8 + 2, 0, 0);
@@ -10,11 +29,15 @@ void draw_board(Program *program) {
   for (int i = 0; i < 8; i++) {
     for (int j = 0; j < 8; j++) {
       if ((i + j) % 2 == 0) {
+        wattron(board->win, COLOR_PAIR(BOARD_WHITE));
         if (j == 7) draw_tile_ln(program, '#');
         else draw_tile(program, '#');
+        wattroff(board->win, COLOR_PAIR(BOARD_WHITE));
       } else {
+        wattron(board->win, COLOR_PAIR(BOARD_BLACK));
         if (j == 7) draw_tile_ln(program, '~');
         else draw_tile(program, '~');
+        wattroff(board->win, COLOR_PAIR(BOARD_BLACK));
       }
     } 
   }
@@ -23,7 +46,6 @@ void draw_board(Program *program) {
 }
 
 void draw_tile(const Program *program, const char c) {
-  if (getcury(program->board->win) != 1) wmove(program->board->win, getcury(program->board->win) - TILE_HEIGHT + 1, getcurx(program->board->win));
   char row[TILE_WIDTH + 1];
   for (int i = 0; i < TILE_WIDTH; i++) {
     row[i] = c;
@@ -33,6 +55,7 @@ void draw_tile(const Program *program, const char c) {
   for (int i = 0; i < TILE_HEIGHT - 1; i++) {
     mvwprintw(program->board->win, getcury(program->board->win) + 1, getcurx(program->board->win) - TILE_WIDTH, "%s", row);
   }
+  wmove(program->board->win, getcury(program->board->win) - TILE_HEIGHT + 1, getcurx(program->board->win));
 }
 
 void draw_tile_ln(const Program *program, const char c) {
@@ -46,6 +69,7 @@ void draw_pieces(const Program *program, int **board) {
       draw_piece(program, i, j, board[i][j]);
     }
   }
+  wrefresh(program->board->win);
 }
 
 char *assign_piece(int piece) {
@@ -79,31 +103,42 @@ char *assign_piece(int piece) {
 
 void draw_piece(const Program *program, const int row, const int col, const int piece) {
   char *piece_str;
+  bool is_tile_white = (row + col) % 2 == 0;
+  bool is_piece_white = is_white(piece);
+
   wmove(program->board->win, row * TILE_HEIGHT + 1, col * TILE_WIDTH + 1);
-  if (is_white(piece)) {
+  if (is_piece_white) {
     piece_str = assign_piece(piece);
   } else {
     piece_str = assign_piece(piece - BLACK);
   }
-
-  int i = 0;
-  while (piece_str[i] != '\0') {
-    switch (piece_str[i]) {
-      case ' ': {
-        wmove(program->board->win, getcury(program->board->win), getcurx(program->board->win) + 1);
-        i++;
-        break;
-      }
-      case '\n': {
-        wmove(program->board->win, getcury(program->board->win) + 1, getcurx(program->board->win) - TILE_WIDTH);
-        i++;
-        break;
-      }
-      default: {
-        wprintw(program->board->win, "%c", piece_str[i]);
-        i++;
+  
+  if (strcmp(piece_str, "") == 0) {
+    is_tile_white ? wattron(program->board->win, COLOR_PAIR(BOARD_WHITE)) : wattron(program->board->win, COLOR_PAIR(BOARD_BLACK));
+    draw_tile(program, is_tile_white ? '#' : '~');
+    is_tile_white ? wattroff(program->board->win, COLOR_PAIR(BOARD_WHITE)) : wattroff(program->board->win, COLOR_PAIR(BOARD_BLACK));
+  } else {
+    is_piece_white ? wattron(program->board->win, COLOR_PAIR(PIECE_WHITE)) : wattron(program->board->win, COLOR_PAIR(PIECE_BLACK));
+    int i = 0;
+    while (piece_str[i] != '\0') {
+      switch (piece_str[i]) {
+        case ' ': {
+          wmove(program->board->win, getcury(program->board->win), getcurx(program->board->win) + 1);
+          i++;
+          break;
+        }
+        case '\n': {
+          wmove(program->board->win, getcury(program->board->win) + 1, getcurx(program->board->win) - TILE_WIDTH);
+          i++;
+          break;
+        }
+        default: {
+          wprintw(program->board->win, "%c", piece_str[i]);
+          i++;
+        }
       }
     }
+    is_piece_white ? wattroff(program->board->win, COLOR_PAIR(PIECE_WHITE)) : wattroff(program->board->win, COLOR_PAIR(PIECE_BLACK));
   }
 }
 
@@ -121,4 +156,5 @@ void update_board(const Program *program, int **cur_board, int **prev_board) {
       col++;
     }
   }
+  wrefresh(program->board->win);
 }

@@ -12,6 +12,7 @@
 #define CREDITS  2
 #define EXIT     3
 
+void init_colors();
 void finish(Program *program);
 void draw_options(const Program *program, char **options, int option);
 int main(void);

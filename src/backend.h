@@ -2,6 +2,7 @@
 #define CHEEZEE_BACKEND__
 
 #include "cheezee.h"
+#include <math.h>
 
 #define WHITE  0
 #define BLACK  18

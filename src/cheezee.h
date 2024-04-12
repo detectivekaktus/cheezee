@@ -25,13 +25,6 @@
   } while(0)
 
 typedef struct {
-  int index;
-  int r;
-  int g;
-  int b;
-} Color;
-
-typedef struct {
   WINDOW *win;
   int x;
   int y;

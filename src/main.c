@@ -3,6 +3,7 @@
 #include "frontend.h"
 #include "main.h"
 
+
 void finish(Program *program) {
   if (program->main_menu) DESTROY_WINDOW(program->main_menu);
   if (program->board) DESTROY_WINDOW(program->board);
@@ -36,6 +37,7 @@ int main(void) {
   getmaxyx(stdscr, program->y, program->x);
   if (!has_colors()) CRASH("Your terminal does not support colors.\n");
   if (program->y < TILE_HEIGHT * 8 + 2 || program->x < TILE_WIDTH * 8 + 2) CRASH("Your viewport must be at least %dx%d to run this program.\n", TILE_HEIGHT * 8 + 2, TILE_WIDTH * 8 + 2);
+  init_colors();
 
   WIN *main_menu;
   CREATE_CENTERED_WINDOW(program, main_menu, program->y * 0.5, program->x * 0.5);
@@ -98,9 +100,9 @@ int main(void) {
             mvwprintw(credits_text->win, 0, 0, "Hi there!");
             mvwprintw(credits_text->win, getcury(credits_text->win) + 2, 0, "I'm Artiom Astashonak, a third year high-school student, who's interested in computer science. I made this project to practice my C programming skills, as well as to learn ncurses library.");
             mvwprintw(credits_text->win, getcury(credits_text->win)+ 2, 0, "You can find the source code of this application at: ");
-            attron(A_UNDERLINE);
+            wattron(credits_text->win, A_UNDERLINE);
             wprintw(credits_text->win, "https://github.com/Artiom-Astashonak/cheezee");
-            attroff(A_UNDERLINE);
+            wattroff(credits_text->win, A_UNDERLINE);
             wrefresh(credits->win);
             wrefresh(credits_text->win);
             
