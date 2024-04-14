@@ -67,7 +67,9 @@ void draw_tile_ln(const Program *program, const char c) {
 
 void draw_tile_row_col(const Program *program, const int row, const int col, const char c) {
   wmove(program->board->win, row * TILE_HEIGHT + 1, col * TILE_WIDTH + 1);
+  (row + col) % 2 == 0 ? wattron(program->board->win, COLOR_PAIR(BOARD_WHITE)) : wattron(program->board->win, COLOR_PAIR(BOARD_BLACK));
   draw_tile(program, c);
+  (row + col) % 2 == 0 ? wattroff(program->board->win, COLOR_PAIR(BOARD_WHITE)) : wattroff(program->board->win, COLOR_PAIR(BOARD_BLACK));
 }
 
 void highlight_tile(const Program *program, const int row, const int col) {
