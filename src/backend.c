@@ -44,6 +44,8 @@ void play(Program *program) {
     switch (input) {
       case KEY_UP: {
         if (row > 0) {
+          draw_tile_row_col(program, row, col, (row + col) % 2 == 0 ? '#' : '~');
+          draw_piece(program, row, col, cur_board[row][col]);
           row--;
           highlight_tile(program, row, col);
         }
@@ -51,6 +53,8 @@ void play(Program *program) {
       }
       case KEY_DOWN: {
         if (row < 7) {
+          draw_tile_row_col(program, row, col, (row + col) % 2 == 0 ? '#' : '~');
+          draw_piece(program, row, col, cur_board[row][col]);
           row++;
           highlight_tile(program, row, col);
         }
@@ -58,6 +62,8 @@ void play(Program *program) {
       }
       case KEY_LEFT: {
         if (col > 0) {
+          draw_tile_row_col(program, row, col, (row + col) % 2 == 0 ? '#' : '~');
+          draw_piece(program, row, col, cur_board[row][col]);
           col--;
           highlight_tile(program, row, col);
         }
@@ -65,6 +71,8 @@ void play(Program *program) {
       }
       case KEY_RIGHT: {
         if (col < 7) {
+          draw_tile_row_col(program, row, col, (row + col) % 2 == 0 ? '#' : '~');
+          draw_piece(program, row, col, cur_board[row][col]);
           col++;
           highlight_tile(program, row, col);
         }

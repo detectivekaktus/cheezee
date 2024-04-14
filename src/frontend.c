@@ -65,6 +65,11 @@ void draw_tile_ln(const Program *program, const char c) {
   wmove(program->board->win, getcury(program->board->win) + TILE_HEIGHT, 1);
 }
 
+void draw_tile_row_col(const Program *program, const int row, const int col, const char c) {
+  wmove(program->board->win, row * TILE_HEIGHT + 1, col * TILE_WIDTH + 1);
+  draw_tile(program, c);
+}
+
 void highlight_tile(const Program *program, const int row, const int col) {
   wmove(program->board->win, row * TILE_HEIGHT + 1, col * TILE_WIDTH + 1);
   for (int i = 0; i < TILE_HEIGHT; i++) {

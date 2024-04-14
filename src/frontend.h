@@ -32,6 +32,7 @@ void init_colors();
 void draw_board(Program *program);
 void draw_tile(const Program *program, const char c);
 void draw_tile_ln(const Program *program, const char c);
+void draw_tile_row_col(const Program *program, const int row, const int col, const char c);
 void highlight_tile(const Program *program, const int row, const int col);
 void update_board(const Program *program, int **cur_board, int **prev_board);
 char *assign_piece(int piece);
