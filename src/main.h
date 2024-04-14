@@ -4,9 +4,6 @@
 #include "cheezee.h"
 #include <locale.h>
 
-#define ENTER    0xA
-#define ESCAPE   0x1B
-
 #define NEW_GAME 0
 #define FEN_POS  1
 #define CREDITS  2

@@ -7,6 +7,9 @@
 #include <stdbool.h>
 #include <string.h>
 
+#define ENTER  0xA
+#define ESCAPE 0x1B
+
 #define CRASH(msg, ...) \
   do { \
     fprintf(stderr, msg, ##__VA_ARGS__); \

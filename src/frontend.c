@@ -65,6 +65,29 @@ void draw_tile_ln(const Program *program, const char c) {
   wmove(program->board->win, getcury(program->board->win) + TILE_HEIGHT, 1);
 }
 
+void highlight_tile(const Program *program, const int row, const int col) {
+  wmove(program->board->win, row * TILE_HEIGHT + 1, col * TILE_WIDTH + 1);
+  for (int i = 0; i < TILE_HEIGHT; i++) {
+    for (int j = 0; j < TILE_WIDTH; j++) {
+      // Due to the Mingw Windows ncurses library incompatability
+      // with unicode characters, we have to make a longer check for
+      // tile characters and not piece characters.
+      if (((winch(program->board->win) & A_CHARTEXT) == '#') || ((winch(program->board->win) & A_CHARTEXT) == '~')) {
+        wattron(program->board->win, COLOR_PAIR(SELECTION));
+        if ((row + col) % 2 == 0) {
+          wprintw(program->board->win, "#");
+        } else {
+          wprintw(program->board->win, "~");
+        }
+        wattroff(program->board->win, COLOR_PAIR(SELECTION));
+      } else {
+        wmove(program->board->win, getcury(program->board->win), getcurx(program->board->win) + 1);
+      }
+    }
+    wmove(program->board->win, getcury(program->board->win) + 1, getcurx(program->board->win) - TILE_WIDTH);
+  }
+}
+
 void draw_pieces(const Program *program, int **board) {
   for (int i = 0; i < 8; i++) {
     for (int j = 0; j < 8; j++) {

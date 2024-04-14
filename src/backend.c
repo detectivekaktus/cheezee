@@ -31,12 +31,52 @@ void play(Program *program) {
 
   int **cur_board = start_standard_board();
   int **prev_board = start_standard_board();
+  int row = 0;
+  int col = 0;
+  int input;
 
   draw_board(program);
   draw_pieces(program, cur_board);
-  int input;
+  highlight_tile(program, row, col);
+  keypad(program->board->win, true);
   do {
     input = wgetch(program->board->win);
+    switch (input) {
+      case KEY_UP: {
+        if (row > 0) {
+          row--;
+          highlight_tile(program, row, col);
+        }
+        break;
+      }
+      case KEY_DOWN: {
+        if (row < 7) {
+          row++;
+          highlight_tile(program, row, col);
+        }
+        break;
+      }
+      case KEY_LEFT: {
+        if (col > 0) {
+          col--;
+          highlight_tile(program, row, col);
+        }
+        break;
+      }
+      case KEY_RIGHT: {
+        if (col < 7) {
+          col++;
+          highlight_tile(program, row, col);
+        }
+        break;
+      }
+      case ENTER: {
+        ASSERT(false, "not implemeted\n");
+      }
+      default: {
+        break;
+      }
+    }
   } while (input != 'Q' && input != 'q');
   DESTROY_WINDOW(help);
   DESTROY_WINDOW(help_text);
