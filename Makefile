@@ -6,10 +6,10 @@ WIN_LIBS = -I./include/win -L./include/win -lncursesw -DNCURSES_STATIC
 PSX_LIBS = -lncursesw -lm
 
 win: win_targets
-	$(CC) $(CFLAGS) -o main $(TARGETS) $(WIN_LIBS)
+	$(CC) $(CFLAGS) -o cheezee $(TARGETS) $(WIN_LIBS)
 
 psx: psx_targets
-	$(CC) $(CFLAGS) -o main $(TARGETS) $(PSX_LIBS)
+	$(CC) $(CFLAGS) -o cheezee $(TARGETS) $(PSX_LIBS)
 
 win_targets: $(SOURCE)
 	$(CC) $(CFLAGS) -c $(SOURCE) $(WIN_LIBS)

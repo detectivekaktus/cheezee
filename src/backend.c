@@ -90,6 +90,11 @@ void play(Program *program) {
   DESTROY_WINDOW(help_text);
   DESTROY_WINDOW(log);
   DESTROY_WINDOW(log_text);
+  DESTROY_WINDOW(program->board);
+  for (int i = 0; i < 8; i++) {
+    free(cur_board[i]);
+    free(prev_board[i]);
+  }
   free(cur_board);
   free(prev_board);
 }
