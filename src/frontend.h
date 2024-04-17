@@ -38,5 +38,6 @@ void update_board(const Program *program, int **cur_board, int **prev_board);
 char *assign_piece(int piece);
 void draw_pieces(const Program *program, int **board);
 void draw_piece(const Program *program, const int row, const int col, const int piece);
+bool is_white_tile(const int row, const int col);
 
 #endif // CHEEZEE_FRONTEND__

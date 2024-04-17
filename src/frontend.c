@@ -30,7 +30,7 @@ void draw_board(Program *program) {
   wmove(board->win, 1, 1);
   for (int i = 0; i < 8; i++) {
     for (int j = 0; j < 8; j++) {
-      if ((i + j) % 2 == 0) {
+      if (is_white_tile(i, j)) {
         wattron(board->win, COLOR_PAIR(BOARD_WHITE));
         if (j == 7) draw_tile_ln(program, '#');
         else draw_tile(program, '#');
@@ -67,9 +67,9 @@ void draw_tile_ln(const Program *program, const char c) {
 
 void draw_tile_row_col(const Program *program, const int row, const int col, const char c) {
   wmove(program->board->win, row * TILE_HEIGHT + 1, col * TILE_WIDTH + 1);
-  (row + col) % 2 == 0 ? wattron(program->board->win, COLOR_PAIR(BOARD_WHITE)) : wattron(program->board->win, COLOR_PAIR(BOARD_BLACK));
+  is_white_tile(row, col) ? wattron(program->board->win, COLOR_PAIR(BOARD_WHITE)) : wattron(program->board->win, COLOR_PAIR(BOARD_BLACK));
   draw_tile(program, c);
-  (row + col) % 2 == 0 ? wattroff(program->board->win, COLOR_PAIR(BOARD_WHITE)) : wattroff(program->board->win, COLOR_PAIR(BOARD_BLACK));
+  is_white_tile(row, col) ? wattroff(program->board->win, COLOR_PAIR(BOARD_WHITE)) : wattroff(program->board->win, COLOR_PAIR(BOARD_BLACK));
 }
 
 void highlight_tile(const Program *program, const int row, const int col) {
@@ -81,7 +81,7 @@ void highlight_tile(const Program *program, const int row, const int col) {
       // tile characters and not piece characters.
       if (((winch(program->board->win) & A_CHARTEXT) == '#') || ((winch(program->board->win) & A_CHARTEXT) == '~')) {
         wattron(program->board->win, COLOR_PAIR(SELECTION));
-        if ((row + col) % 2 == 0) {
+        if (is_white_tile(row, col)) {
           wprintw(program->board->win, "#");
         } else {
           wprintw(program->board->win, "~");
@@ -135,22 +135,20 @@ char *assign_piece(int piece) {
 
 void draw_piece(const Program *program, const int row, const int col, const int piece) {
   char *piece_str;
-  bool is_tile_white = (row + col) % 2 == 0;
-  bool is_piece_white = is_white(piece);
 
   wmove(program->board->win, row * TILE_HEIGHT + 1, col * TILE_WIDTH + 1);
-  if (is_piece_white) {
+  if (is_white_piece(piece)) {
     piece_str = assign_piece(piece);
   } else {
     piece_str = assign_piece(piece - BLACK);
   }
   
   if (strcmp(piece_str, "") == 0) {
-    is_tile_white ? wattron(program->board->win, COLOR_PAIR(BOARD_WHITE)) : wattron(program->board->win, COLOR_PAIR(BOARD_BLACK));
-    draw_tile(program, is_tile_white ? '#' : '~');
-    is_tile_white ? wattroff(program->board->win, COLOR_PAIR(BOARD_WHITE)) : wattroff(program->board->win, COLOR_PAIR(BOARD_BLACK));
+    is_white_tile(row, col) ? wattron(program->board->win, COLOR_PAIR(BOARD_WHITE)) : wattron(program->board->win, COLOR_PAIR(BOARD_BLACK));
+    draw_tile(program, is_white_tile(row, col) ? '#' : '~');
+    is_white_tile(row, col) ? wattroff(program->board->win, COLOR_PAIR(BOARD_WHITE)) : wattroff(program->board->win, COLOR_PAIR(BOARD_BLACK));
   } else {
-    is_piece_white ? wattron(program->board->win, COLOR_PAIR(PIECE_WHITE)) : wattron(program->board->win, COLOR_PAIR(PIECE_BLACK));
+    is_white_piece(piece) ? wattron(program->board->win, COLOR_PAIR(PIECE_WHITE)) : wattron(program->board->win, COLOR_PAIR(PIECE_BLACK));
     int i = 0;
     while (piece_str[i] != '\0') {
       switch (piece_str[i]) {
@@ -170,7 +168,7 @@ void draw_piece(const Program *program, const int row, const int col, const int 
         }
       }
     }
-    is_piece_white ? wattroff(program->board->win, COLOR_PAIR(PIECE_WHITE)) : wattroff(program->board->win, COLOR_PAIR(PIECE_BLACK));
+    is_white_piece(piece) ? wattroff(program->board->win, COLOR_PAIR(PIECE_WHITE)) : wattroff(program->board->win, COLOR_PAIR(PIECE_BLACK));
   }
 }
 
@@ -189,4 +187,8 @@ void update_board(const Program *program, int **cur_board, int **prev_board) {
     }
   }
   wrefresh(program->board->win);
+}
+
+bool is_white_tile(const int row, const int col) {
+  return (row + col) % 2 == 0;
 }

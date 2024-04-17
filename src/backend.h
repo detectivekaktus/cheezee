@@ -16,6 +16,6 @@
 
 void play(Program *program);
 int **start_standard_board();
-bool is_white(const int piece);
+bool is_white_piece(const int piece);
 
 #endif // CHEEZEE_BACKEND__

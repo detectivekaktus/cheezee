@@ -128,6 +128,6 @@ int **start_standard_board() {
   return board;
 }
 
-bool is_white(const int piece) {
+bool is_white_piece(const int piece) {
   return piece - BLACK != abs(piece - BLACK);
 }
