@@ -44,7 +44,7 @@ void play(Program *program) {
     switch (input) {
       case KEY_UP: {
         if (row > 0) {
-          draw_tile_row_col(program, row, col, (row + col) % 2 == 0 ? '#' : '~');
+          draw_tile_row_col(program, row, col, is_white_tile(row, col) ? '#' : '~');
           draw_piece(program, row, col, cur_board[row][col]);
           row--;
           highlight_tile(program, row, col);
@@ -53,7 +53,7 @@ void play(Program *program) {
       }
       case KEY_DOWN: {
         if (row < 7) {
-          draw_tile_row_col(program, row, col, (row + col) % 2 == 0 ? '#' : '~');
+          draw_tile_row_col(program, row, col, is_white_tile(row, col) ? '#' : '~');
           draw_piece(program, row, col, cur_board[row][col]);
           row++;
           highlight_tile(program, row, col);
@@ -62,7 +62,7 @@ void play(Program *program) {
       }
       case KEY_LEFT: {
         if (col > 0) {
-          draw_tile_row_col(program, row, col, (row + col) % 2 == 0 ? '#' : '~');
+          draw_tile_row_col(program, row, col, is_white_tile(row, col) ? '#' : '~');
           draw_piece(program, row, col, cur_board[row][col]);
           col--;
           highlight_tile(program, row, col);
@@ -71,7 +71,7 @@ void play(Program *program) {
       }
       case KEY_RIGHT: {
         if (col < 7) {
-          draw_tile_row_col(program, row, col, (row + col) % 2 == 0 ? '#' : '~');
+          draw_tile_row_col(program, row, col, is_white_tile(row, col) ? '#' : '~');
           draw_piece(program, row, col, cur_board[row][col]);
           col++;
           highlight_tile(program, row, col);
@@ -79,7 +79,15 @@ void play(Program *program) {
         break;
       }
       case ENTER: {
-        ASSERT(false, "not implemeted\n");
+        if (cur_board[row][col] == 0) break;
+        Moves *moves = get_available_moves(cur_board, row, col);
+        for (size_t i = 0; i < moves->capacity; i++) {
+          for (int j = 0; j < 2; j++) {
+            printf("%d\n", moves->moves[i][j]);
+          }
+        }
+        printf("%zu %zu\n", moves->capacity, moves->size);
+        CRASH("\n");
       }
       default: {
         break;
@@ -128,6 +136,77 @@ int **start_standard_board() {
   return board;
 }
 
+Moves *get_available_moves(int **board, const int row, const int col) {
+  switch (board[row][col]) {
+    case PAWN + BLACK:
+    case PAWN: {
+      return get_pawn_moves(board, row, col);
+    }
+    case KNIGHT + BLACK:
+    case KNIGHT: {
+      ASSERT(false, "not implemented\n");
+    }
+    case BISHOP + BLACK:
+    case BISHOP: {
+      ASSERT(false, "not implemented\n");
+    }
+    case ROOK + BLACK:
+    case ROOK: {
+      ASSERT(false, "not implemented\n");
+    }
+    case QUEEN + BLACK:
+    case QUEEN: {
+      ASSERT(false, "not implemented\n");
+    }
+    case KING + BLACK:
+    case KING: {
+      ASSERT(false, "not implemented\n");
+    }
+    default: {
+      CRASH("unexpected piece found. piece: %d", board[row][col]);
+    }
+  }
+}
+
+Moves *get_pawn_moves(int **board, int row, int col) {
+  Moves *moves;
+  MOVES_INIT(moves);
+
+  if (is_white_piece(board[row][col])) {
+    if (row == 6) {
+      row--;
+      int i = 0;
+      while (is_empty(board[row][col]) && i < 2) {
+        MOVES_ADD(moves, row, col);
+        row--;
+        i++;
+      }
+    } else {
+      row--;
+      if (is_empty(board[row][col])) MOVES_ADD(moves, row, col);
+    }
+  } else {
+    if (row == 1) {
+      row++;
+      int i = 0;
+      while (is_empty(board[row][col]) && i < 2) {
+        MOVES_ADD(moves, row, col);
+        row++;
+        i++;
+      }
+    } else {
+      row++;
+      if (is_empty(board[row][col])) MOVES_ADD(moves, row, col);
+    }
+  }
+
+  return moves;
+}
+
 bool is_white_piece(const int piece) {
   return piece - BLACK != abs(piece - BLACK);
+}
+
+bool is_empty(const int tile) {
+  return tile == 0;
 }

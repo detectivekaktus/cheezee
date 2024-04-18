@@ -16,6 +16,9 @@
 
 void play(Program *program);
 int **start_standard_board();
+Moves *get_available_moves(int **board, const int row, const int col);
+Moves *get_pawn_moves(int **board, int row, int col);
 bool is_white_piece(const int piece);
+bool is_empty(const int tile);
 
 #endif // CHEEZEE_BACKEND__
