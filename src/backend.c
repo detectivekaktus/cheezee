@@ -81,7 +81,11 @@ void play(Program *program) {
       case ENTER: {
         if (cur_board[row][col] == 0) break;
         Moves *moves = get_available_moves(cur_board, row, col);
-        for (size_t i = 0; i < moves->capacity; i++) {
+        if (!can_move(moves)) {
+          MOVES_DESTROY(moves);
+          break;
+        }
+        for (size_t i = 0; i < moves->size; i++) {
           for (int j = 0; j < 2; j++) {
             printf("%d\n", moves->moves[i][j]);
           }
@@ -148,7 +152,7 @@ Moves *get_available_moves(int **board, const int row, const int col) {
     }
     case BISHOP + BLACK:
     case BISHOP: {
-      ASSERT(false, "not implemented\n");
+      return get_bishop_moves(board, row, col);
     }
     case ROOK + BLACK:
     case ROOK: {
@@ -201,6 +205,46 @@ Moves *get_pawn_moves(int **board, int row, int col) {
   }
 
   return moves;
+}
+
+Moves *get_bishop_moves(int **board, int row, int col) {
+  Moves *moves;
+  int iter_row, iter_col;
+  MOVES_INIT(moves);
+
+  iter_row = is_in_board_limit(row + 1) ? row + 1 : row;
+  iter_col = is_in_board_limit(col + 1) ? col + 1 : col;
+  traverse_diagonal(moves, board, iter_row, iter_col, 1, 1);
+
+  iter_row = is_in_board_limit(row - 1) ? row - 1 : row;
+  iter_col = is_in_board_limit(col - 1) ? col - 1 : col;
+  traverse_diagonal(moves, board, iter_row, iter_col, -1, -1);
+
+  iter_row = is_in_board_limit(row + 1) ? row + 1 : row;
+  iter_col = is_in_board_limit(col - 1) ? col - 1 : col;
+  traverse_diagonal(moves, board, iter_row, iter_col, 1, -1);
+
+  iter_row = is_in_board_limit(row - 1) ? row - 1 : row;
+  iter_col = is_in_board_limit(col + 1) ? col + 1 : col;
+  traverse_diagonal(moves, board, iter_row, iter_col, -1, 1);
+
+  return moves;
+}
+
+void traverse_diagonal(Moves *moves, int **board, int row, int col, int inc_y, int inc_x) {
+  while (is_empty(board[row][col]) && (is_in_board_limit(row) && is_in_board_limit(col))) {
+    MOVES_ADD(moves, row, col);
+    row += inc_y;
+    col += inc_x;
+  }
+}
+
+bool is_in_board_limit(const int axis) {
+  return (axis <= 7) && (axis >= 0);
+}
+
+bool can_move(Moves *moves) {
+  return moves->size != 0;
 }
 
 bool is_white_piece(const int piece) {

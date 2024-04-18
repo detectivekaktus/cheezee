@@ -79,7 +79,7 @@ typedef struct {
     (arr)->capacity = 1; \
   } while(0)
 
-#define MOVES_ADD(arr, x, y) \
+#define MOVES_ADD(arr, y, x) \
   do { \
     if ((arr)->size == (arr)->capacity) { \
       (arr)->capacity *= 2; \
@@ -88,15 +88,15 @@ typedef struct {
     } \
     int *move = calloc(2, sizeof(int)); \
     if (move == NULL) CRASH("buy more RAM lol"); \
-    move[0] = x; \
-    move[1] = y; \
+    move[0] = y; \
+    move[1] = x; \
     (arr)->moves[(arr)->size] = move; \
     (arr)->size++; \
   } while(0)
 
 #define MOVES_DESTROY(arr) \
   do { \
-    for (int i = 0; i < (arr)->capacity; i++) { \
+    for (size_t i = 0; i < (arr)->capacity; i++) { \
       free((arr)->moves[i]); \
     } \
     free((arr)->moves); \

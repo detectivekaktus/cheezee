@@ -18,6 +18,10 @@ void play(Program *program);
 int **start_standard_board();
 Moves *get_available_moves(int **board, const int row, const int col);
 Moves *get_pawn_moves(int **board, int row, int col);
+Moves *get_bishop_moves(int **board, int row, int col);
+void traverse_diagonal(Moves *moves, int **board, int row, int col, int inc_y, int inc_x);
+bool is_in_board_limit(const int axis);
+bool can_move(Moves *moves);
 bool is_white_piece(const int piece);
 bool is_empty(const int tile);
 
