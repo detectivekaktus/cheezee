@@ -156,7 +156,7 @@ Moves *get_available_moves(int **board, const int row, const int col) {
     }
     case ROOK + BLACK:
     case ROOK: {
-      ASSERT(false, "not implemented\n");
+      return get_rook_moves(board, row, col);
     }
     case QUEEN + BLACK:
     case QUEEN: {
@@ -231,11 +231,49 @@ Moves *get_bishop_moves(int **board, int row, int col) {
   return moves;
 }
 
+Moves *get_rook_moves(int **board, int row, int col) {
+  Moves *moves;
+  int iter_row, iter_col;
+  MOVES_INIT(moves);
+
+  iter_row = is_in_board_limit(row + 1) ? row + 1 : row;
+  iter_col = col;
+  traverse_vertical(moves, board, iter_row, iter_col, 1);
+
+  iter_row = is_in_board_limit(row - 1) ? row - 1 : row;
+  iter_col = col;
+  traverse_vertical(moves, board, row, col, -1);
+
+  iter_row = row;
+  iter_col = is_in_board_limit(col + 1) ? col + 1 : col;
+  traverse_horizontal(moves, board, iter_row, iter_col, 1);
+
+  iter_row = row;
+  iter_col = is_in_board_limit(col - 1) ? col - 1 : col;
+  traverse_horizontal(moves, board, iter_row, iter_col, -1);
+
+  return moves;
+}
+
 void traverse_diagonal(Moves *moves, int **board, int row, int col, int inc_y, int inc_x) {
   while (is_empty(board[row][col]) && (is_in_board_limit(row) && is_in_board_limit(col))) {
     MOVES_ADD(moves, row, col);
     row += inc_y;
     col += inc_x;
+  }
+}
+
+void traverse_vertical(Moves *moves, int **board, int row, int col, int inc) {
+  while (is_empty(board[row][col]) && (is_in_board_limit(row) && is_in_board_limit(col))) {
+    MOVES_ADD(moves, row, col);
+    row += inc;
+  }
+}
+
+void traverse_horizontal(Moves *moves, int **board, int row, int col, int inc) {
+  while (is_empty(board[row][col]) && (is_in_board_limit(row) && is_in_board_limit(col))) {
+    MOVES_ADD(moves, row, col);
+    col += inc;
   }
 }
 
