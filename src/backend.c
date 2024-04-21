@@ -79,7 +79,7 @@ void play(Program *program) {
         break;
       }
       case ENTER: {
-        if (cur_board[row][col] == 0) break;
+        if (is_empty(cur_board[row][col])) break;
         Moves *moves = get_available_moves(cur_board, row, col);
         if (!can_move(moves)) {
           MOVES_DESTROY(moves);
@@ -160,7 +160,7 @@ Moves *get_available_moves(int **board, const int row, const int col) {
     }
     case QUEEN + BLACK:
     case QUEEN: {
-      ASSERT(false, "not implemented\n");
+      return get_queen_moves(board, row, col);
     }
     case KING + BLACK:
     case KING: {
@@ -177,6 +177,11 @@ Moves *get_pawn_moves(int **board, int row, int col) {
   MOVES_INIT(moves);
 
   if (is_white_piece(board[row][col])) {
+    if (is_in_board_limit(row - 1) && is_in_board_limit(col - 1) && is_in_board_limit(col + 1)) {
+      if (!is_empty(board[row - 1][col - 1]) && !is_white_piece(board[row - 1][col - 1])) MOVES_ADD(moves, row - 1, col - 1);
+      if (!is_empty(board[row - 1][col + 1]) && !is_white_piece(board[row - 1][col + 1])) MOVES_ADD(moves, row - 1, col + 1);
+    }
+
     if (row == 6) {
       row--;
       int i = 0;
@@ -190,6 +195,11 @@ Moves *get_pawn_moves(int **board, int row, int col) {
       if (is_empty(board[row][col])) MOVES_ADD(moves, row, col);
     }
   } else {
+    if (is_in_board_limit(row + 1) && is_in_board_limit(col - 1) && is_in_board_limit(col + 1)) {
+      if (!is_empty(board[row + 1][col - 1]) && is_white_piece(board[row + 1][col - 1])) MOVES_ADD(moves, row + 1, col - 1);
+      if (!is_empty(board[row + 1][col + 1]) && is_white_piece(board[row + 1][col + 1])) MOVES_ADD(moves, row + 1, col + 1);
+    }
+
     if (row == 1) {
       row++;
       int i = 0;
@@ -208,70 +218,115 @@ Moves *get_pawn_moves(int **board, int row, int col) {
 }
 
 Moves *get_bishop_moves(int **board, int row, int col) {
+  bool is_white = is_white_piece(board[row][col]);
   Moves *moves;
-  int iter_row, iter_col;
   MOVES_INIT(moves);
 
-  iter_row = is_in_board_limit(row + 1) ? row + 1 : row;
-  iter_col = is_in_board_limit(col + 1) ? col + 1 : col;
-  traverse_diagonal(moves, board, iter_row, iter_col, 1, 1);
-
-  iter_row = is_in_board_limit(row - 1) ? row - 1 : row;
-  iter_col = is_in_board_limit(col - 1) ? col - 1 : col;
-  traverse_diagonal(moves, board, iter_row, iter_col, -1, -1);
-
-  iter_row = is_in_board_limit(row + 1) ? row + 1 : row;
-  iter_col = is_in_board_limit(col - 1) ? col - 1 : col;
-  traverse_diagonal(moves, board, iter_row, iter_col, 1, -1);
-
-  iter_row = is_in_board_limit(row - 1) ? row - 1 : row;
-  iter_col = is_in_board_limit(col + 1) ? col + 1 : col;
-  traverse_diagonal(moves, board, iter_row, iter_col, -1, 1);
+  traverse_diagonal(moves, board,
+                    is_in_board_limit(row + 1) ? row + 1 : row,
+                    is_in_board_limit(col + 1) ? col + 1 : col,
+                    1, 1, is_white);
+  traverse_diagonal(moves, board,
+                    is_in_board_limit(row - 1) ? row - 1 : row,
+                    is_in_board_limit(col - 1) ? col - 1 : col,
+                    -1, -1, is_white);
+  traverse_diagonal(moves, board,
+                    is_in_board_limit(row + 1) ? row + 1 : row,
+                    is_in_board_limit(col - 1) ? col - 1 : col,
+                    1, -1, is_white);
+  traverse_diagonal(moves, board,
+                    is_in_board_limit(row - 1) ? row - 1 : row,
+                    is_in_board_limit(col + 1) ? col + 1 : col,
+                    -1, 1, is_white);
 
   return moves;
 }
 
 Moves *get_rook_moves(int **board, int row, int col) {
+  bool is_white = is_white_piece(board[row][col]);
   Moves *moves;
-  int iter_row, iter_col;
   MOVES_INIT(moves);
 
-  iter_row = is_in_board_limit(row + 1) ? row + 1 : row;
-  iter_col = col;
-  traverse_vertical(moves, board, iter_row, iter_col, 1);
-
-  iter_row = is_in_board_limit(row - 1) ? row - 1 : row;
-  iter_col = col;
-  traverse_vertical(moves, board, row, col, -1);
-
-  iter_row = row;
-  iter_col = is_in_board_limit(col + 1) ? col + 1 : col;
-  traverse_horizontal(moves, board, iter_row, iter_col, 1);
-
-  iter_row = row;
-  iter_col = is_in_board_limit(col - 1) ? col - 1 : col;
-  traverse_horizontal(moves, board, iter_row, iter_col, -1);
+  traverse_vertical(moves, board, is_in_board_limit(row + 1) ? row + 1 : row, col, 1, is_white);
+  traverse_vertical(moves, board, is_in_board_limit(row - 1) ? row - 1 : row, col, -1, is_white);
+  traverse_horizontal(moves, board, row, is_in_board_limit(col + 1) ? col + 1 : col, 1, is_white);
+  traverse_horizontal(moves, board, row, is_in_board_limit(col - 1) ? col - 1 : col, -1, is_white);
 
   return moves;
 }
 
-void traverse_diagonal(Moves *moves, int **board, int row, int col, int inc_y, int inc_x) {
-  while (is_empty(board[row][col]) && (is_in_board_limit(row) && is_in_board_limit(col))) {
+Moves *get_queen_moves(int **board, int row, int col) {
+  bool is_white = is_white_piece(board[row][col]);
+  Moves *moves;
+  MOVES_INIT(moves);
+
+  traverse_vertical(moves, board, is_in_board_limit(row + 1) ? row + 1 : row, col, 1, is_white);
+  traverse_vertical(moves, board, is_in_board_limit(row - 1) ? row - 1 : row, col, -1, is_white);
+  traverse_horizontal(moves, board, row, is_in_board_limit(col + 1) ? col + 1 : col, 1, is_white);
+  traverse_horizontal(moves, board, row, is_in_board_limit(col - 1) ? col - 1 : col, -1, is_white);
+
+  traverse_diagonal(moves, board,
+                    is_in_board_limit(row + 1) ? row + 1 : row,
+                    is_in_board_limit(col + 1) ? col + 1 : col,
+                    1, 1, is_white);
+  traverse_diagonal(moves, board,
+                    is_in_board_limit(row - 1) ? row - 1 : row,
+                    is_in_board_limit(col - 1) ? col - 1 : col,
+                    -1, -1, is_white);
+  traverse_diagonal(moves, board,
+                    is_in_board_limit(row + 1) ? row + 1 : row,
+                    is_in_board_limit(col - 1) ? col - 1 : col,
+                    1, -1, is_white);
+  traverse_diagonal(moves, board,
+                    is_in_board_limit(row - 1) ? row - 1 : row,
+                    is_in_board_limit(col + 1) ? col + 1 : col,
+                    -1, 1, is_white);
+
+
+  return moves;
+}
+
+void traverse_diagonal(Moves *moves, int **board, int row, int col, int inc_y, int inc_x, const bool is_white) {
+  while (is_in_board_limit(row) && is_in_board_limit(col)) {
+    if (!is_empty(board[row][col])) {
+      if (is_white == is_white_piece(board[row][col])) {
+        break;
+      } else {
+        MOVES_ADD(moves, row, col);
+        break;
+      }
+    }
     MOVES_ADD(moves, row, col);
     row += inc_y;
     col += inc_x;
   }
 }
 
-void traverse_vertical(Moves *moves, int **board, int row, int col, int inc) {
-  while (is_empty(board[row][col]) && (is_in_board_limit(row) && is_in_board_limit(col))) {
+void traverse_vertical(Moves *moves, int **board, int row, int col, int inc, const bool is_white) {
+  while (is_in_board_limit(row) && is_in_board_limit(col)) {
+    if (!is_empty(board[row][col])) {
+      if (is_white == is_white_piece(board[row][col])) {
+        break;
+      } else {
+        MOVES_ADD(moves, row, col);
+        break;
+      }
+    }
     MOVES_ADD(moves, row, col);
     row += inc;
   }
 }
 
-void traverse_horizontal(Moves *moves, int **board, int row, int col, int inc) {
-  while (is_empty(board[row][col]) && (is_in_board_limit(row) && is_in_board_limit(col))) {
+void traverse_horizontal(Moves *moves, int **board, int row, int col, int inc, const bool is_white) {
+  while (is_in_board_limit(row) && is_in_board_limit(col)) {
+    if (!is_empty(board[row][col])) {
+      if (is_white == is_white_piece(board[row][col])) {
+        break;
+      } else {
+        MOVES_ADD(moves, row, col);
+        break;
+      }
+    }
     MOVES_ADD(moves, row, col);
     col += inc;
   }
