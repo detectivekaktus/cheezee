@@ -30,6 +30,7 @@ void play(Program *program) {
   wrefresh(log_text->win);
 
   int **cur_board = start_standard_board();
+  cur_board[3][3] = KING;
   int **prev_board = start_standard_board();
   int row = 0;
   int col = 0;
@@ -80,7 +81,7 @@ void play(Program *program) {
       }
       case ENTER: {
         if (is_empty(cur_board[row][col])) break;
-        Moves *moves = get_available_moves(cur_board, row, col);
+        Moves *moves = get_moves(cur_board, row, col);
         if (!can_move(moves)) {
           MOVES_DESTROY(moves);
           break;
@@ -140,7 +141,7 @@ int **start_standard_board() {
   return board;
 }
 
-Moves *get_available_moves(int **board, const int row, const int col) {
+Moves *get_moves(int **board, const int row, const int col) {
   switch (board[row][col]) {
     case PAWN + BLACK:
     case PAWN: {
@@ -164,7 +165,7 @@ Moves *get_available_moves(int **board, const int row, const int col) {
     }
     case KING + BLACK:
     case KING: {
-      ASSERT(false, "not implemented\n");
+      return get_king_moves(board, row, col);
     }
     default: {
       CRASH("unexpected piece found. piece: %d", board[row][col]);
@@ -172,14 +173,15 @@ Moves *get_available_moves(int **board, const int row, const int col) {
   }
 }
 
+// TODO (#1): Add the en-passant move.
 Moves *get_pawn_moves(int **board, int row, int col) {
   Moves *moves;
   MOVES_INIT(moves);
 
   if (is_white_piece(board[row][col])) {
-    if (is_in_board_limit(row - 1) && is_in_board_limit(col - 1) && is_in_board_limit(col + 1)) {
-      if (!is_empty(board[row - 1][col - 1]) && !is_white_piece(board[row - 1][col - 1])) MOVES_ADD(moves, row - 1, col - 1);
-      if (!is_empty(board[row - 1][col + 1]) && !is_white_piece(board[row - 1][col + 1])) MOVES_ADD(moves, row - 1, col + 1);
+    if (is_in_board_limit(row - 1) && (is_in_board_limit(col - 1) || is_in_board_limit(col + 1))) {
+      if (is_in_board_limit(col - 1) && !is_empty(board[row - 1][col - 1]) && !is_white_piece(board[row - 1][col - 1])) MOVES_ADD(moves, row - 1, col - 1);
+      if (is_in_board_limit(col + 1) && !is_empty(board[row - 1][col + 1]) && !is_white_piece(board[row - 1][col + 1])) MOVES_ADD(moves, row - 1, col + 1);
     }
 
     if (row == 6) {
@@ -195,9 +197,9 @@ Moves *get_pawn_moves(int **board, int row, int col) {
       if (is_empty(board[row][col])) MOVES_ADD(moves, row, col);
     }
   } else {
-    if (is_in_board_limit(row + 1) && is_in_board_limit(col - 1) && is_in_board_limit(col + 1)) {
-      if (!is_empty(board[row + 1][col - 1]) && is_white_piece(board[row + 1][col - 1])) MOVES_ADD(moves, row + 1, col - 1);
-      if (!is_empty(board[row + 1][col + 1]) && is_white_piece(board[row + 1][col + 1])) MOVES_ADD(moves, row + 1, col + 1);
+    if (is_in_board_limit(row + 1) && (is_in_board_limit(col - 1) || is_in_board_limit(col + 1))) {
+      if (is_in_board_limit(col - 1) && !is_empty(board[row + 1][col - 1]) && is_white_piece(board[row + 1][col - 1])) MOVES_ADD(moves, row + 1, col - 1);
+      if (is_in_board_limit(col + 1) && !is_empty(board[row + 1][col + 1]) && is_white_piece(board[row + 1][col + 1])) MOVES_ADD(moves, row + 1, col + 1);
     }
 
     if (row == 1) {
@@ -222,22 +224,10 @@ Moves *get_bishop_moves(int **board, int row, int col) {
   Moves *moves;
   MOVES_INIT(moves);
 
-  traverse_diagonal(moves, board,
-                    is_in_board_limit(row + 1) ? row + 1 : row,
-                    is_in_board_limit(col + 1) ? col + 1 : col,
-                    1, 1, is_white);
-  traverse_diagonal(moves, board,
-                    is_in_board_limit(row - 1) ? row - 1 : row,
-                    is_in_board_limit(col - 1) ? col - 1 : col,
-                    -1, -1, is_white);
-  traverse_diagonal(moves, board,
-                    is_in_board_limit(row + 1) ? row + 1 : row,
-                    is_in_board_limit(col - 1) ? col - 1 : col,
-                    1, -1, is_white);
-  traverse_diagonal(moves, board,
-                    is_in_board_limit(row - 1) ? row - 1 : row,
-                    is_in_board_limit(col + 1) ? col + 1 : col,
-                    -1, 1, is_white);
+  traverse_diagonal(moves, board, is_in_board_limit(row + 1) ? row + 1 : row, is_in_board_limit(col + 1) ? col + 1 : col, 1, 1, is_white);
+  traverse_diagonal(moves, board, is_in_board_limit(row - 1) ? row - 1 : row, is_in_board_limit(col - 1) ? col - 1 : col, -1, -1, is_white);
+  traverse_diagonal(moves, board, is_in_board_limit(row + 1) ? row + 1 : row, is_in_board_limit(col - 1) ? col - 1 : col, 1, -1, is_white);
+  traverse_diagonal(moves, board, is_in_board_limit(row - 1) ? row - 1 : row, is_in_board_limit(col + 1) ? col + 1 : col, -1, 1, is_white);
 
   return moves;
 }
@@ -265,23 +255,32 @@ Moves *get_queen_moves(int **board, int row, int col) {
   traverse_horizontal(moves, board, row, is_in_board_limit(col + 1) ? col + 1 : col, 1, is_white);
   traverse_horizontal(moves, board, row, is_in_board_limit(col - 1) ? col - 1 : col, -1, is_white);
 
-  traverse_diagonal(moves, board,
-                    is_in_board_limit(row + 1) ? row + 1 : row,
-                    is_in_board_limit(col + 1) ? col + 1 : col,
-                    1, 1, is_white);
-  traverse_diagonal(moves, board,
-                    is_in_board_limit(row - 1) ? row - 1 : row,
-                    is_in_board_limit(col - 1) ? col - 1 : col,
-                    -1, -1, is_white);
-  traverse_diagonal(moves, board,
-                    is_in_board_limit(row + 1) ? row + 1 : row,
-                    is_in_board_limit(col - 1) ? col - 1 : col,
-                    1, -1, is_white);
-  traverse_diagonal(moves, board,
-                    is_in_board_limit(row - 1) ? row - 1 : row,
-                    is_in_board_limit(col + 1) ? col + 1 : col,
-                    -1, 1, is_white);
+  traverse_diagonal(moves, board, is_in_board_limit(row + 1) ? row + 1 : row, is_in_board_limit(col + 1) ? col + 1 : col, 1, 1, is_white);
+  traverse_diagonal(moves, board, is_in_board_limit(row - 1) ? row - 1 : row, is_in_board_limit(col - 1) ? col - 1 : col, -1, -1, is_white);
+  traverse_diagonal(moves, board, is_in_board_limit(row + 1) ? row + 1 : row, is_in_board_limit(col - 1) ? col - 1 : col, 1, -1, is_white);
+  traverse_diagonal(moves, board, is_in_board_limit(row - 1) ? row - 1 : row, is_in_board_limit(col + 1) ? col + 1 : col, -1, 1, is_white);
 
+  return moves;
+}
+
+// TODO (#2): Check if the attacked piece has a defender.
+// TODO (#3): Add casteling move.
+Moves *get_king_moves(int **board, int row, int col) {
+  const bool is_white = is_white_piece(board[row][col]);
+  Moves *moves;
+  MOVES_INIT(moves);
+
+  int y[] = { 0, 1, -1 };
+  int x[] = { 0, 1, -1 };
+  for (int i = 0; i < 3; i++) {
+    for (int j = 0; j < 3; j++) {
+      if (y[i] == 0 && x[j] == 0) continue;
+      if (is_in_board_limit(row + y[i]) && is_in_board_limit(col + x[j])) {
+        if (is_empty(board[row + y[i]][col + x[j]])) MOVES_ADD(moves, row + y[i], col + x[j]);
+        if (is_white != is_white_piece(board[row + y[i]][col + x[j]])) MOVES_ADD(moves, row + y[i], col + x[j]);
+      }
+    }
+  }
 
   return moves;
 }
@@ -336,7 +335,7 @@ bool is_in_board_limit(const int axis) {
   return (axis <= 7) && (axis >= 0);
 }
 
-bool can_move(Moves *moves) {
+bool can_move(const Moves *moves) {
   return moves->size != 0;
 }
 
