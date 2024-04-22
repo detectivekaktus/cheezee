@@ -3,6 +3,8 @@
 #include "frontend.h"
 #include "main.h"
 
+// Issue (#1): Segmentation fault occurs after entering into the game,
+// exiting it and then quitting the program itself.
 void finish(Program *program) {
   if (program->main_menu) DESTROY_WINDOW(program->main_menu);
   if (program->board) DESTROY_WINDOW(program->board);

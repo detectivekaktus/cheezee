@@ -30,7 +30,6 @@ void play(Program *program) {
   wrefresh(log_text->win);
 
   int **cur_board = start_standard_board();
-  cur_board[3][3] = KING;
   int **prev_board = start_standard_board();
   int row = 0;
   int col = 0;
