@@ -61,6 +61,7 @@ typedef struct {
   do { \
     delwin((window)->win); \
     free(window); \
+    window = NULL; \
   } while(0)
 
 typedef struct {
