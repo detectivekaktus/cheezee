@@ -18,6 +18,7 @@ void play(Program *program);
 int **start_standard_board();
 Moves *get_moves(int **board, const int row, const int col);
 Moves *get_pawn_moves(int **board, int row, int col);
+Moves *get_knight_moves(int **board, int row, int col);
 Moves *get_bishop_moves(int **board, int row, int col);
 Moves *get_rook_moves(int **board, int row, int col);
 Moves *get_queen_moves(int **board, int row, int col);

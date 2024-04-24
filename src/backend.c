@@ -148,7 +148,7 @@ Moves *get_moves(int **board, const int row, const int col) {
     }
     case KNIGHT + BLACK:
     case KNIGHT: {
-      ASSERT(false, "not implemented\n");
+      return get_knight_moves(board, row, col);
     }
     case BISHOP + BLACK:
     case BISHOP: {
@@ -218,8 +218,30 @@ Moves *get_pawn_moves(int **board, int row, int col) {
   return moves;
 }
 
+Moves *get_knight_moves(int **board, int row, int col) {
+  const bool is_white = is_white_piece(board[row][col]);
+  Moves *moves;
+  MOVES_INIT(moves);
+
+  const int y[] = { -2, -1, 1, 2 };
+  const int x[] = { -1, 1, -2, 2, -2, 2, -1, 1 };
+  int i = 0;
+  int j = 0;
+  while (j < 8) {
+    const int end_row = row + y[i];
+    const int end_col = col + x[j];
+    if (is_in_board_limit(end_row) && is_in_board_limit(end_col)) {
+      if (is_empty(board[end_row][end_col]) || is_white != is_white_piece(board[end_row][end_col])) MOVES_ADD(moves, end_row, end_col);
+    }
+    i += (j % 2 != 0) ? 1 : 0;
+    j++;
+  }
+
+  return moves;
+}
+
 Moves *get_bishop_moves(int **board, int row, int col) {
-  bool is_white = is_white_piece(board[row][col]);
+  const bool is_white = is_white_piece(board[row][col]);
   Moves *moves;
   MOVES_INIT(moves);
 
@@ -232,7 +254,7 @@ Moves *get_bishop_moves(int **board, int row, int col) {
 }
 
 Moves *get_rook_moves(int **board, int row, int col) {
-  bool is_white = is_white_piece(board[row][col]);
+  const bool is_white = is_white_piece(board[row][col]);
   Moves *moves;
   MOVES_INIT(moves);
 
@@ -245,7 +267,7 @@ Moves *get_rook_moves(int **board, int row, int col) {
 }
 
 Moves *get_queen_moves(int **board, int row, int col) {
-  bool is_white = is_white_piece(board[row][col]);
+  const bool is_white = is_white_piece(board[row][col]);
   Moves *moves;
   MOVES_INIT(moves);
 
@@ -269,14 +291,16 @@ Moves *get_king_moves(int **board, int row, int col) {
   Moves *moves;
   MOVES_INIT(moves);
 
-  int y[] = { 0, 1, -1 };
-  int x[] = { 0, 1, -1 };
+  const int y[] = { 0, 1, -1 };
+  const int x[] = { 0, 1, -1 };
   for (int i = 0; i < 3; i++) {
     for (int j = 0; j < 3; j++) {
       if (y[i] == 0 && x[j] == 0) continue;
-      if (is_in_board_limit(row + y[i]) && is_in_board_limit(col + x[j])) {
-        if (is_empty(board[row + y[i]][col + x[j]])) MOVES_ADD(moves, row + y[i], col + x[j]);
-        if (is_white != is_white_piece(board[row + y[i]][col + x[j]])) MOVES_ADD(moves, row + y[i], col + x[j]);
+      const int end_row = row + y[i];
+      const int end_col = col + x[j];
+      if (is_in_board_limit(end_row) && is_in_board_limit(end_col)) {
+        if (is_empty(board[end_row][end_col])) MOVES_ADD(moves, end_row, end_col);
+        if (is_white != is_white_piece(board[end_row][end_col])) MOVES_ADD(moves, end_row, end_col);
       }
     }
   }
