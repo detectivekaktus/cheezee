@@ -72,7 +72,7 @@ void draw_tile_row_col(const Program *program, const int row, const int col, con
   is_white_tile(row, col) ? wattroff(program->board->win, COLOR_PAIR(BOARD_WHITE)) : wattroff(program->board->win, COLOR_PAIR(BOARD_BLACK));
 }
 
-void highlight_tile(const Program *program, const int row, const int col) {
+void highlight_tile(const Program *program, const int row, const int col, const int color) {
   wmove(program->board->win, row * TILE_HEIGHT + 1, col * TILE_WIDTH + 1);
   for (int i = 0; i < TILE_HEIGHT; i++) {
     for (int j = 0; j < TILE_WIDTH; j++) {
@@ -80,19 +80,27 @@ void highlight_tile(const Program *program, const int row, const int col) {
       // with unicode characters, we have to make a longer check for
       // tile characters and not piece characters.
       if (((winch(program->board->win) & A_CHARTEXT) == '#') || ((winch(program->board->win) & A_CHARTEXT) == '~')) {
-        wattron(program->board->win, COLOR_PAIR(SELECTION));
+        wattron(program->board->win, COLOR_PAIR(color));
         if (is_white_tile(row, col)) {
           wprintw(program->board->win, "#");
         } else {
           wprintw(program->board->win, "~");
         }
-        wattroff(program->board->win, COLOR_PAIR(SELECTION));
+        wattroff(program->board->win, COLOR_PAIR(color));
       } else {
         wmove(program->board->win, getcury(program->board->win), getcurx(program->board->win) + 1);
       }
     }
     wmove(program->board->win, getcury(program->board->win) + 1, getcurx(program->board->win) - TILE_WIDTH);
   }
+}
+
+void draw_moves(const Program *program, int **board, const int row, const int col) {
+  Moves *moves = get_moves(board, row, col);
+  for (size_t i = 0; i < moves->size; i++) {
+    highlight_tile(program, moves->moves[i][0], moves->moves[i][1], POSSIBLE_MOVE);
+  }
+  MOVES_DESTROY(moves);
 }
 
 void draw_pieces(const Program *program, int **board) {

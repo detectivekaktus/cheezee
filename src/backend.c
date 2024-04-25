@@ -37,7 +37,7 @@ void play(Program *program) {
 
   draw_board(program);
   draw_pieces(program, cur_board);
-  highlight_tile(program, row, col);
+  highlight_tile(program, row, col, SELECTION);
   keypad(program->board->win, true);
   do {
     input = wgetch(program->board->win);
@@ -47,7 +47,7 @@ void play(Program *program) {
           draw_tile_row_col(program, row, col, is_white_tile(row, col) ? '#' : '~');
           draw_piece(program, row, col, cur_board[row][col]);
           row--;
-          highlight_tile(program, row, col);
+          highlight_tile(program, row, col, SELECTION);
         }
         break;
       }
@@ -56,7 +56,7 @@ void play(Program *program) {
           draw_tile_row_col(program, row, col, is_white_tile(row, col) ? '#' : '~');
           draw_piece(program, row, col, cur_board[row][col]);
           row++;
-          highlight_tile(program, row, col);
+          highlight_tile(program, row, col, SELECTION);
         }
         break;
       }
@@ -65,7 +65,7 @@ void play(Program *program) {
           draw_tile_row_col(program, row, col, is_white_tile(row, col) ? '#' : '~');
           draw_piece(program, row, col, cur_board[row][col]);
           col--;
-          highlight_tile(program, row, col);
+          highlight_tile(program, row, col, SELECTION);
         }
         break;
       }
@@ -74,23 +74,14 @@ void play(Program *program) {
           draw_tile_row_col(program, row, col, is_white_tile(row, col) ? '#' : '~');
           draw_piece(program, row, col, cur_board[row][col]);
           col++;
-          highlight_tile(program, row, col);
+          highlight_tile(program, row, col, SELECTION);
         }
         break;
       }
       case ENTER: {
         if (is_empty(cur_board[row][col])) break;
-        Moves *moves = get_moves(cur_board, row, col);
-        if (!can_move(moves)) {
-          MOVES_DESTROY(moves);
-          break;
-        }
-        for (size_t i = 0; i < moves->size; i++) {
-          for (int j = 0; j < 2; j++) {
-            printf("%d\n", moves->moves[i][j]);
-          }
-        }
-        printf("%zu %zu\n", moves->capacity, moves->size);
+        draw_moves(program, cur_board, row, col);
+        wgetch(program->board->win);
         CRASH("\n");
       }
       default: {
