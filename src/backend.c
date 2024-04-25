@@ -79,8 +79,12 @@ void play(Program *program) {
         }
         break;
       }
+      // Issue (#2): crashes (without segmentation fault)
+      // after playing a few moves from the initial position.
+      // It happens especially if touching anything that's not pawn.
       case ENTER: {
         if (is_empty(cur_board[row][col])) break;
+        if ((is_white_turn && !is_white_piece(cur_board[row][col])) || (!is_white_turn && is_white_piece(cur_board[row][col]))) break;
         int end_row = row;
         int end_col = col;
 
@@ -125,11 +129,19 @@ void play(Program *program) {
               break;
             }
           }
-        } while (input != ENTER);
+        } while (input != ENTER && input != ESCAPE);
+        if (input == ESCAPE) break;
 
         clear_drawn_moves(program, cur_board, row, col);
+        if (!is_valid_move(cur_board[row][col], row, col, end_row, end_col)) break;
+        write_board(cur_board, prev_board);
+        cur_board[end_row][end_col] = cur_board[row][col];
+        cur_board[row][col] = 0;
+        row = end_row;
+        col = end_col;
         is_white_turn = !is_white_turn;
-        CRASH("\n");
+        update_board(program, cur_board, prev_board);
+        highlight_tile(program, row, col, SELECTION);
         break;
       }
       default: {
@@ -179,6 +191,14 @@ int **start_standard_board() {
   return board;
 }
 
+void write_board(int **source, int **destination) {
+  for (int i = 0; i < 8; i++) {
+    for (int j = 0; j < 8; j++) {
+      destination[i][j] = source[i][j];
+    }
+  }
+}
+
 Moves *get_moves(int **board, const int row, const int col) {
   switch (board[row][col]) {
     case PAWN + BLACK:
@@ -206,7 +226,7 @@ Moves *get_moves(int **board, const int row, const int col) {
       return get_king_moves(board, row, col);
     }
     default: {
-      CRASH("unexpected piece found. piece: %d", board[row][col]);
+      CRASH("Unexpected piece found. piece: %d", board[row][col]);
     }
   }
 }
@@ -380,7 +400,7 @@ bool is_valid_move(const int piece, const int start_row, const int start_col, co
 }
 
 bool is_valid_pawn_move(const int start_row, const int start_col, const int end_row, const int end_col) {
-  return (end_row == start_row + 1) || (end_row == start_row + 2) || ((end_row == start_row + 1) && ((end_col == start_col + 1) || (end_col == start_col - 1)));
+  return (end_row == start_row + 1) || (end_row == start_row + 2) || (end_row == start_row - 1) || (end_row == start_row - 2) || ((end_row == start_row + 1) && ((end_col == start_col + 1) || (end_col == start_col - 1)));
 }
 
 bool is_valid_knight_move(const int start_row, const int start_col, const int end_row, const int end_col) {

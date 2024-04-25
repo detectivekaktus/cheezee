@@ -176,9 +176,15 @@ void draw_piece(const Program *program, const int row, const int col, const int 
   }
   
   if (strcmp(piece_str, "") == 0) {
-    is_white_tile(row, col) ? wattron(program->board->win, COLOR_PAIR(BOARD_WHITE)) : wattron(program->board->win, COLOR_PAIR(BOARD_BLACK));
-    draw_tile(program, is_white_tile(row, col) ? '#' : '~');
-    is_white_tile(row, col) ? wattroff(program->board->win, COLOR_PAIR(BOARD_WHITE)) : wattroff(program->board->win, COLOR_PAIR(BOARD_BLACK));
+    if (is_white_tile(row, col)) {
+      wattron(program->board->win, COLOR_PAIR(BOARD_WHITE));
+      draw_tile(program, '#');
+      wattroff(program->board->win, COLOR_PAIR(BOARD_WHITE));
+    } else {
+      wattron(program->board->win, COLOR_PAIR(BOARD_BLACK));
+      draw_tile(program, '~');
+      wattroff(program->board->win, COLOR_PAIR(BOARD_BLACK));
+    }
   } else {
     is_white_piece(piece) ? wattron(program->board->win, COLOR_PAIR(PIECE_WHITE)) : wattron(program->board->win, COLOR_PAIR(PIECE_BLACK));
     int i = 0;

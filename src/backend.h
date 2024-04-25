@@ -14,8 +14,49 @@
 #define QUEEN  9
 #define KING   10
 
+typedef struct {
+  int **moves;
+  size_t size;
+  size_t capacity;
+} Moves;
+
+#define MOVES_INIT(arr) \
+  do { \
+    arr = malloc(sizeof(Moves)); \
+    if (arr == NULL) CRASH("buy more RAM lol"); \
+    (arr)->moves = calloc(1, sizeof(int *)); \
+    if ((arr)->moves == NULL) CRASH("buy more RAM lol"); \
+    (arr)->size = 0; \
+    (arr)->capacity = 1; \
+  } while(0)
+
+#define MOVES_ADD(arr, y, x) \
+  do { \
+    if ((arr)->size == (arr)->capacity) { \
+      (arr)->capacity *= 2; \
+      (arr)->moves = realloc((arr)->moves, (arr)->capacity * sizeof(int *)); \
+      if ((arr)->moves == NULL) CRASH("buy more RAM lol"); \
+    } \
+    int *move = calloc(2, sizeof(int)); \
+    if (move == NULL) CRASH("buy more RAM lol"); \
+    move[0] = y; \
+    move[1] = x; \
+    (arr)->moves[(arr)->size] = move; \
+    (arr)->size++; \
+  } while(0)
+
+#define MOVES_DESTROY(arr) \
+  do { \
+    for (size_t i = 0; i < (arr)->capacity; i++) { \
+      free((arr)->moves[i]); \
+    } \
+    free((arr)->moves); \
+    free(arr); \
+  } while(0)
+
 void play(Program *program);
 int **start_standard_board();
+void write_board(int **source, int **destination);
 Moves *get_moves(int **board, const int row, const int col);
 Moves *get_pawn_moves(int **board, int row, int col);
 Moves *get_knight_moves(int **board, int row, int col);
