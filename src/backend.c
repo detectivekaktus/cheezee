@@ -85,50 +85,51 @@ void play(Program *program) {
         int end_col = col;
 
         draw_moves(program, cur_board, row, col);
-        input = wgetch(program->board->win);
-        switch (input) {
-          case KEY_UP: {
-            if (end_row > 0) {
-              draw_tile_row_col(program, end_row, end_col);
-              draw_piece(program, end_row, end_col, cur_board[end_row][end_col]);
-              end_row--;
-              highlight_tile(program, end_row, end_col, SELECTION);
+        do {
+          input = wgetch(program->board->win);
+          switch (input) {
+            case KEY_UP: {
+              if (end_row > 0) {
+                draw_tile_row_col(program, end_row, end_col);
+                draw_piece(program, end_row, end_col, cur_board[end_row][end_col]);
+                end_row--;
+                highlight_tile(program, end_row, end_col, SELECTION);
+              }
+              break;
             }
-            break;
-          }
-          case KEY_DOWN: {
-            if (end_row < 7) {
-              draw_tile_row_col(program, end_row, end_col);
-              draw_piece(program, end_row, end_col, cur_board[end_row][end_col]);
-              end_row++;
-              highlight_tile(program, end_row, end_col, SELECTION);
+            case KEY_DOWN: {
+              if (end_row < 7) {
+                draw_tile_row_col(program, end_row, end_col);
+                draw_piece(program, end_row, end_col, cur_board[end_row][end_col]);
+                end_row++;
+                highlight_tile(program, end_row, end_col, SELECTION);
+              }
+              break;
             }
-            break;
-          }
-          case KEY_LEFT: {
-            if (end_col > 0) {
-              draw_tile_row_col(program, end_row, end_col);
-              draw_piece(program, end_row, end_col, cur_board[end_row][end_col]);
-              end_col--;
-              highlight_tile(program, end_row, end_col, SELECTION);
+            case KEY_LEFT: {
+              if (end_col > 0) {
+                draw_tile_row_col(program, end_row, end_col);
+                draw_piece(program, end_row, end_col, cur_board[end_row][end_col]);
+                end_col--;
+                highlight_tile(program, end_row, end_col, SELECTION);
+              }
+              break;
             }
-            break;
-          }
-          case KEY_RIGHT: {
-            if (end_col < 7) {
-              draw_tile_row_col(program, end_row, end_col);
-              draw_piece(program, end_row, end_col, cur_board[end_row][end_col]);
-              end_col++;
-              highlight_tile(program, end_row, end_col, SELECTION);
+            case KEY_RIGHT: {
+              if (end_col < 7) {
+                draw_tile_row_col(program, end_row, end_col);
+                draw_piece(program, end_row, end_col, cur_board[end_row][end_col]);
+                end_col++;
+                highlight_tile(program, end_row, end_col, SELECTION);
+              }
+              break;
             }
-            break;
           }
-          case ENTER: {
-            clear_drawn_moves(program, cur_board, row, col);
-            is_white_turn = !is_white_turn;
-            CRASH("\n");
-          }
-        }
+        } while (input != ENTER);
+
+        clear_drawn_moves(program, cur_board, row, col);
+        is_white_turn = !is_white_turn;
+        CRASH("\n");
         break;
       }
       default: {
