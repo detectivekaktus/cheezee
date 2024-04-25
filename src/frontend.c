@@ -110,7 +110,7 @@ void draw_moves(const Program *program, int **board, const int row, const int co
   for (size_t i = 0; i < moves->size; i++) {
     highlight_tile(program, moves->moves[i][0], moves->moves[i][1], POSSIBLE_MOVE);
   }
-  wmove(program->board->win, (row + 1) * TILE_HEIGHT + 1, col * TILE_WIDTH + 1);
+  highlight_tile(program, row, col, SELECTION);
   MOVES_DESTROY(moves);
 }
 
@@ -121,7 +121,7 @@ void clear_drawn_moves(const Program *program, int **board, const int row, const
     return;
   }
   for (size_t i = 0; i < moves->size; i++) {
-    draw_tile_row_col(program, row, col);
+    draw_tile_row_col(program, moves->moves[i][0], moves->moves[i][1]);
     draw_piece(program, moves->moves[i][0], moves->moves[i][1], board[moves->moves[i][0]][moves->moves[i][1]]);
   }
   MOVES_DESTROY(moves);

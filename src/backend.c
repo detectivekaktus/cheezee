@@ -81,12 +81,10 @@ void play(Program *program) {
       }
       case ENTER: {
         if (is_empty(cur_board[row][col])) break;
-
         int end_row = row;
         int end_col = col;
 
         draw_moves(program, cur_board, row, col);
-        const int piece = cur_board[row][col];
         input = wgetch(program->board->win);
         switch (input) {
           case KEY_UP: {
@@ -126,8 +124,6 @@ void play(Program *program) {
             break;
           }
           case ENTER: {
-            if (!is_valid_move(piece, row, col, end_row, end_col)) break;
-            wgetch(program->board->win);
             clear_drawn_moves(program, cur_board, row, col);
             is_white_turn = !is_white_turn;
             CRASH("\n");
