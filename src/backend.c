@@ -31,6 +31,7 @@ void play(Program *program) {
 
   int **cur_board = start_standard_board();
   int **prev_board = start_standard_board();
+  bool is_white_turn = true;
   int row = 0;
   int col = 0;
   int input;
@@ -44,7 +45,7 @@ void play(Program *program) {
     switch (input) {
       case KEY_UP: {
         if (row > 0) {
-          draw_tile_row_col(program, row, col, is_white_tile(row, col) ? '#' : '~');
+          draw_tile_row_col(program, row, col);
           draw_piece(program, row, col, cur_board[row][col]);
           row--;
           highlight_tile(program, row, col, SELECTION);
@@ -53,7 +54,7 @@ void play(Program *program) {
       }
       case KEY_DOWN: {
         if (row < 7) {
-          draw_tile_row_col(program, row, col, is_white_tile(row, col) ? '#' : '~');
+          draw_tile_row_col(program, row, col);
           draw_piece(program, row, col, cur_board[row][col]);
           row++;
           highlight_tile(program, row, col, SELECTION);
@@ -62,7 +63,7 @@ void play(Program *program) {
       }
       case KEY_LEFT: {
         if (col > 0) {
-          draw_tile_row_col(program, row, col, is_white_tile(row, col) ? '#' : '~');
+          draw_tile_row_col(program, row, col);
           draw_piece(program, row, col, cur_board[row][col]);
           col--;
           highlight_tile(program, row, col, SELECTION);
@@ -71,7 +72,7 @@ void play(Program *program) {
       }
       case KEY_RIGHT: {
         if (col < 7) {
-          draw_tile_row_col(program, row, col, is_white_tile(row, col) ? '#' : '~');
+          draw_tile_row_col(program, row, col);
           draw_piece(program, row, col, cur_board[row][col]);
           col++;
           highlight_tile(program, row, col, SELECTION);
@@ -80,9 +81,59 @@ void play(Program *program) {
       }
       case ENTER: {
         if (is_empty(cur_board[row][col])) break;
+
+        int end_row = row;
+        int end_col = col;
+
         draw_moves(program, cur_board, row, col);
-        wgetch(program->board->win);
-        CRASH("\n");
+        const int piece = cur_board[row][col];
+        input = wgetch(program->board->win);
+        switch (input) {
+          case KEY_UP: {
+            if (end_row > 0) {
+              draw_tile_row_col(program, end_row, end_col);
+              draw_piece(program, end_row, end_col, cur_board[end_row][end_col]);
+              end_row--;
+              highlight_tile(program, end_row, end_col, SELECTION);
+            }
+            break;
+          }
+          case KEY_DOWN: {
+            if (end_row < 7) {
+              draw_tile_row_col(program, end_row, end_col);
+              draw_piece(program, end_row, end_col, cur_board[end_row][end_col]);
+              end_row++;
+              highlight_tile(program, end_row, end_col, SELECTION);
+            }
+            break;
+          }
+          case KEY_LEFT: {
+            if (end_col > 0) {
+              draw_tile_row_col(program, end_row, end_col);
+              draw_piece(program, end_row, end_col, cur_board[end_row][end_col]);
+              end_col--;
+              highlight_tile(program, end_row, end_col, SELECTION);
+            }
+            break;
+          }
+          case KEY_RIGHT: {
+            if (end_col < 7) {
+              draw_tile_row_col(program, end_row, end_col);
+              draw_piece(program, end_row, end_col, cur_board[end_row][end_col]);
+              end_col++;
+              highlight_tile(program, end_row, end_col, SELECTION);
+            }
+            break;
+          }
+          case ENTER: {
+            if (!is_valid_move(piece, row, col, end_row, end_col)) break;
+            wgetch(program->board->win);
+            clear_drawn_moves(program, cur_board, row, col);
+            is_white_turn = !is_white_turn;
+            CRASH("\n");
+          }
+        }
+        break;
       }
       default: {
         break;
@@ -297,6 +348,62 @@ Moves *get_king_moves(int **board, int row, int col) {
   }
 
   return moves;
+}
+
+bool is_valid_move(const int piece, const int start_row, const int start_col, const int end_row, const int end_col) {
+  switch (piece) {
+    case PAWN + BLACK:
+    case PAWN: {
+      return is_valid_pawn_move(start_row, start_col, end_row, end_col);
+    }
+    case KNIGHT + BLACK:
+    case KNIGHT: {
+      return is_valid_knight_move(start_row, start_col, end_row, end_col);
+    }
+    case BISHOP + BLACK:
+    case BISHOP: {
+      return is_valid_bishop_move(start_row, start_col, end_row, end_col);
+    }
+    case ROOK + BLACK:
+    case ROOK: {
+      return is_valid_rook_move(start_row, start_col, end_row, end_col);
+    }
+    case QUEEN + BLACK:
+    case QUEEN: {
+      return is_valid_queen_move(start_row, start_col, end_row, end_col);
+    }
+    case KING + BLACK:
+    case KING: {
+      return is_valid_king_move(start_row, start_col, end_row, end_col);
+    }
+    default: {
+      CRASH("Cannot find valid move for an invalid piece: %d", piece);
+    }
+  }
+}
+
+bool is_valid_pawn_move(const int start_row, const int start_col, const int end_row, const int end_col) {
+  return (end_row == start_row + 1) || (end_row == start_row + 2) || ((end_row == start_row + 1) && ((end_col == start_col + 1) || (end_col == start_col - 1)));
+}
+
+bool is_valid_knight_move(const int start_row, const int start_col, const int end_row, const int end_col) {
+  return abs(start_row - end_row) * abs(start_col - end_col) == 2;
+}
+
+bool is_valid_bishop_move(const int start_row, const int start_col, const int end_row, const int end_col) {
+  return abs(start_row - end_row) == abs(start_col - end_col);
+}
+
+bool is_valid_rook_move(const int start_row, const int start_col, const int end_row, const int end_col) {
+  return (start_row == end_row) || (start_col == end_col);
+}
+
+bool is_valid_queen_move(const int start_row, const int start_col, const int end_row, const int end_col) {
+  return is_valid_bishop_move(start_row, start_col, end_row, end_col) || is_valid_rook_move(start_row, start_col, end_row, end_col);
+}
+
+bool is_valid_king_move(const int start_row, const int start_col, const int end_row, const int end_col) {
+  return abs(start_row - end_row) == 1 || abs(start_col - end_col) == 1;
 }
 
 void traverse_diagonal(Moves *moves, int **board, int row, int col, int inc_y, int inc_x, const bool is_white) {

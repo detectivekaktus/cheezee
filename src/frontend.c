@@ -65,11 +65,17 @@ void draw_tile_ln(const Program *program, const char c) {
   wmove(program->board->win, getcury(program->board->win) + TILE_HEIGHT, 1);
 }
 
-void draw_tile_row_col(const Program *program, const int row, const int col, const char c) {
+void draw_tile_row_col(const Program *program, const int row, const int col) {
   wmove(program->board->win, row * TILE_HEIGHT + 1, col * TILE_WIDTH + 1);
-  is_white_tile(row, col) ? wattron(program->board->win, COLOR_PAIR(BOARD_WHITE)) : wattron(program->board->win, COLOR_PAIR(BOARD_BLACK));
-  draw_tile(program, c);
-  is_white_tile(row, col) ? wattroff(program->board->win, COLOR_PAIR(BOARD_WHITE)) : wattroff(program->board->win, COLOR_PAIR(BOARD_BLACK));
+  if (is_white_tile(row, col)) {
+    wattron(program->board->win, COLOR_PAIR(BOARD_WHITE));
+    draw_tile(program, '#');
+    wattroff(program->board->win, COLOR_PAIR(BOARD_WHITE));
+  } else {
+    wattron(program->board->win, COLOR_PAIR(BOARD_BLACK));
+    draw_tile(program, '~');
+    wattroff(program->board->win, COLOR_PAIR(BOARD_BLACK));
+  }
 }
 
 void highlight_tile(const Program *program, const int row, const int col, const int color) {
@@ -97,8 +103,26 @@ void highlight_tile(const Program *program, const int row, const int col, const 
 
 void draw_moves(const Program *program, int **board, const int row, const int col) {
   Moves *moves = get_moves(board, row, col);
+  if (!can_move(moves)) {
+    MOVES_DESTROY(moves);
+    return;
+  }
   for (size_t i = 0; i < moves->size; i++) {
     highlight_tile(program, moves->moves[i][0], moves->moves[i][1], POSSIBLE_MOVE);
+  }
+  wmove(program->board->win, (row + 1) * TILE_HEIGHT + 1, col * TILE_WIDTH + 1);
+  MOVES_DESTROY(moves);
+}
+
+void clear_drawn_moves(const Program *program, int **board, const int row, const int col) {
+  Moves *moves = get_moves(board, row, col);
+  if (!can_move(moves)) {
+    MOVES_DESTROY(moves);
+    return;
+  }
+  for (size_t i = 0; i < moves->size; i++) {
+    draw_tile_row_col(program, row, col);
+    draw_piece(program, moves->moves[i][0], moves->moves[i][1], board[moves->moves[i][0]][moves->moves[i][1]]);
   }
   MOVES_DESTROY(moves);
 }
@@ -181,17 +205,11 @@ void draw_piece(const Program *program, const int row, const int col, const int 
 }
 
 void update_board(const Program *program, int **cur_board, int **prev_board) {
-  int row = 0;
-  int col = 0;
-  while (row != 8) {
-    if (cur_board[row][col] != prev_board[row][col]) {
-      draw_piece(program, row, col, cur_board[row][col]);
-    }
-    if (col == 7) {
-      col = 0;
-      row++;
-    } else {
-      col++;
+  for (int i = 0; i < 8; i++) {
+    for (int j = 0; j < 8; j++) {
+      if (cur_board[i][j] != prev_board[i][j]) {
+        draw_piece(program, i, j, cur_board[i][j]);
+      }
     }
   }
   wrefresh(program->board->win);
