@@ -29,8 +29,8 @@ void play(Program *program) {
   wrefresh(log->win);
   wrefresh(log_text->win);
 
-  int **cur_board = start_standard_board();
-  int **prev_board = start_standard_board();
+  int **cur_board = stdboard();
+  int **prev_board = stdboard();
   int row = 0;
   int col = 0;
   int input;
@@ -99,7 +99,7 @@ void play(Program *program) {
   free(prev_board);
 }
 
-int **start_standard_board() {
+int **stdboard() {
   int **board = calloc(8, sizeof(int *));
   if (board == NULL) CRASH("buy more RAM lol");
   for (int i = 0; i < 8; i++) {

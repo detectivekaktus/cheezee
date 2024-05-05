@@ -85,7 +85,8 @@ void highlight_tile(const Program *program, const int row, const int col, const 
       // Due to the Mingw Windows ncurses library incompatability
       // with unicode characters, we have to make a longer check for
       // tile characters and not piece characters.
-      if (((winch(program->board->win) & A_CHARTEXT) == '#') || ((winch(program->board->win) & A_CHARTEXT) == '~')) {
+      if (((winch(program->board->win) & A_CHARTEXT) == '#') ||
+        ((winch(program->board->win) & A_CHARTEXT) == '~')) {
         wattron(program->board->win, COLOR_PAIR(color));
         if (is_white_tile(row, col)) {
           wprintw(program->board->win, "#");
@@ -141,9 +142,10 @@ char *assign_piece(int piece) {
 
 void draw_piece(const Program *program, const int row, const int col, const int piece) {
   char *piece_str;
+  bool is_white = is_white_piece(piece);
 
   wmove(program->board->win, row * TILE_HEIGHT + 1, col * TILE_WIDTH + 1);
-  if (is_white_piece(piece)) {
+  if (is_white) {
     piece_str = assign_piece(piece);
   } else {
     piece_str = assign_piece(piece - BLACK);
@@ -160,7 +162,11 @@ void draw_piece(const Program *program, const int row, const int col, const int 
       wattroff(program->board->win, COLOR_PAIR(BOARD_BLACK));
     }
   } else {
-    is_white_piece(piece) ? wattron(program->board->win, COLOR_PAIR(PIECE_WHITE)) : wattron(program->board->win, COLOR_PAIR(PIECE_BLACK));
+    if (is_white) {
+      wattron(program->board->win, COLOR_PAIR(PIECE_WHITE));
+    } else { 
+      wattron(program->board->win, COLOR_PAIR(PIECE_BLACK));
+    }
     int i = 0;
     while (piece_str[i] != '\0') {
       switch (piece_str[i]) {
@@ -180,7 +186,12 @@ void draw_piece(const Program *program, const int row, const int col, const int 
         }
       }
     }
-    is_white_piece(piece) ? wattroff(program->board->win, COLOR_PAIR(PIECE_WHITE)) : wattroff(program->board->win, COLOR_PAIR(PIECE_BLACK));
+    if (is_white) {
+      wattroff(program->board->win, COLOR_PAIR(PIECE_WHITE));
+    } else { 
+      wattroff(program->board->win, COLOR_PAIR(PIECE_BLACK));
+    }
+
   }
 }
 

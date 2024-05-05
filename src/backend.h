@@ -15,7 +15,7 @@
 #define KING   10
 
 void play(Program *program);
-int **start_standard_board();
+int **stdboard();
 void write_board(int **source, int **destination);
 bool is_in_board_limit(const int axis);
 bool is_white_piece(const int piece);

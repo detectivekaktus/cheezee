@@ -34,8 +34,8 @@ int main(void) {
   cbreak();
   noecho();
   getmaxyx(stdscr, program->y, program->x);
-  if (!has_colors()) CRASH("Your terminal does not support colors.\n");
-  if (program->y < TILE_HEIGHT * 8 + 2 || program->x < TILE_WIDTH * 8 + 2) CRASH("Your viewport must be at least %dx%d to run this program.\n", TILE_HEIGHT * 8 + 2, TILE_WIDTH * 8 + 2);
+  if (!has_colors() || !can_change_color()) CRASH("Your terminal does not support colors.\n");
+  if (program->y < TILE_HEIGHT * 8 + 2 || program->x < TILE_WIDTH * 8 + 2) CRASH("Your viewport must be at least %dx%d to run this program. Try to zoom out or buy a new monitor.\n", TILE_HEIGHT * 8 + 2, TILE_WIDTH * 8 + 2);
   init_colors();
 
   WIN *main_menu;
