@@ -101,32 +101,6 @@ void highlight_tile(const Program *program, const int row, const int col, const 
   }
 }
 
-void draw_moves(const Program *program, int **board, const int row, const int col) {
-  Moves *moves = get_moves(board, row, col);
-  if (!can_move(moves)) {
-    MOVES_DESTROY(moves);
-    return;
-  }
-  for (size_t i = 0; i < moves->size; i++) {
-    highlight_tile(program, moves->moves[i][0], moves->moves[i][1], POSSIBLE_MOVE);
-  }
-  highlight_tile(program, row, col, SELECTION);
-  MOVES_DESTROY(moves);
-}
-
-void clear_drawn_moves(const Program *program, int **board, const int row, const int col) {
-  Moves *moves = get_moves(board, row, col);
-  if (!can_move(moves)) {
-    MOVES_DESTROY(moves);
-    return;
-  }
-  for (size_t i = 0; i < moves->size; i++) {
-    draw_tile_row_col(program, moves->moves[i][0], moves->moves[i][1]);
-    draw_piece(program, moves->moves[i][0], moves->moves[i][1], board[moves->moves[i][0]][moves->moves[i][1]]);
-  }
-  MOVES_DESTROY(moves);
-}
-
 void draw_pieces(const Program *program, int **board) {
   for (int i = 0; i < 8; i++) {
     for (int j = 0; j < 8; j++) {
