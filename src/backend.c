@@ -30,7 +30,8 @@ void play(Program *program) {
   wrefresh(log_text->win);
 
   int **cur_board = stdboard();
-  int **prev_board = stdboard();
+  int **prev_board = empty_board();
+  bool is_white_turn = true;
   int row = 0;
   int col = 0;
   int input;
@@ -79,7 +80,64 @@ void play(Program *program) {
         break;
       }
       case ENTER: {
-        ASSERT(false, "Not implemented\n");
+        if (is_empty(cur_board[row][col])) break;
+        int mrow = row;
+        int mcol = col;
+        do {
+          input = wgetch(program->board->win);
+          switch (input) {
+            case KEY_UP: {
+              if (mrow > 0) {
+                draw_tile_row_col(program, mrow, mcol);
+                draw_piece(program, mrow, mcol, cur_board[mrow][mcol]);
+                mrow--;
+                highlight_tile(program, mrow, mcol, SELECTION);
+              }
+              break;
+            }
+            case KEY_DOWN: {
+              if (mrow < 7) {
+                draw_tile_row_col(program, mrow, mcol);
+                draw_piece(program, mrow, mcol, cur_board[mrow][mcol]);
+                mrow++;
+                highlight_tile(program, mrow, mcol, SELECTION);
+              }
+              break;
+            }
+            case KEY_LEFT: {
+              if (mcol > 0) {
+                draw_tile_row_col(program, mrow, mcol);
+                draw_piece(program, mrow, mcol, cur_board[mrow][mcol]);
+                mcol--;
+                highlight_tile(program, mrow, mcol, SELECTION);
+              }
+              break;
+            }
+            case KEY_RIGHT: {
+              if (mcol < 7) {
+                draw_tile_row_col(program, mrow, mcol);
+                draw_piece(program, mrow, mcol, cur_board[mrow][mcol]);
+                mcol++;
+                highlight_tile(program, mrow, mcol, SELECTION);
+              }
+              break;
+            }
+            default: {
+              break;
+            }
+          }
+        } while (input != ESCAPE && input != ENTER);
+        if (input == ESCAPE ||
+          !is_legal_move(cur_board, row, col, mrow, mcol)) break;
+        play_move(cur_board, prev_board, row, col, mrow, mcol);
+        update_board(program, cur_board, prev_board);
+        draw_tile_row_col(program, mrow, mcol);
+        draw_piece(program, mrow, mcol, cur_board[mrow][mcol]);
+        highlight_tile(program, mrow, mcol, SELECTION);
+        row = mrow;
+        col = mcol;
+        is_white_turn = !is_white_turn;
+        break;
       }
       default: {
         break;
@@ -91,12 +149,18 @@ void play(Program *program) {
   DESTROY_WINDOW(log);
   DESTROY_WINDOW(log_text);
   DESTROY_WINDOW(program->board);
+  free_board(cur_board);
+  free_board(prev_board);
+}
+
+int **empty_board() {
+  int **board = calloc(8, sizeof(int *));
+  if (board == NULL) CRASH("buy more RAM lol");
   for (int i = 0; i < 8; i++) {
-    free(cur_board[i]);
-    free(prev_board[i]);
+    board[i] = calloc(8, sizeof(int));
+    if (board[i] == NULL) CRASH("buy more RAM lol");
   }
-  free(cur_board);
-  free(prev_board);
+  return board;
 }
 
 int **stdboard() {
@@ -114,9 +178,13 @@ int **stdboard() {
   board[0][5] = BLACK + BISHOP;
   board[0][6] = BLACK + KNIGHT;
   board[0][7] = BLACK + ROOK;
-  for (int i = 0; i < 8; i++) board[1][i] = BLACK + PAWN;
+  for (int i = 0; i < 8; i++) {
+    board[1][i] = BLACK + PAWN;
+  }
 
-  for (int i = 0; i < 8; i++) board[6][i] = WHITE + PAWN;
+  for (int i = 0; i < 8; i++) {
+    board[6][i] = WHITE + PAWN;
+  }
   board[7][0] = WHITE + ROOK;
   board[7][1] = WHITE + KNIGHT;
   board[7][2] = WHITE + BISHOP;
@@ -134,6 +202,56 @@ void write_board(int **source, int **destination) {
       destination[i][j] = source[i][j];
     }
   }
+}
+
+void free_board(int **board) {
+  for (int i = 0; i < 8; i++) {
+    free(board[i]);
+  }
+  free(board);
+}
+
+int **make_move(int **board, int start_row, int start_col, int end_row, int end_col) {
+  int **move_board = empty_board();
+  write_board(board, move_board);
+  move_board[end_row][end_col] = move_board[start_row][start_col];
+  move_board[start_row][start_col] = 0;
+  return move_board;
+}
+
+void play_move(int **cur_board, int **prev_board, int start_row, int start_col, int end_row, int end_col) {
+  write_board(cur_board, prev_board);
+  cur_board[end_row][end_col] = cur_board[start_row][start_col];
+  cur_board[start_row][start_col] = 0;
+}
+
+// TODO #1: Implement the en-passant move and the casteling move.
+// These moves influence all the called functions inside the current
+// function.
+bool is_legal_move(int **board, int start_row, int start_col, int end_row, int end_col) {
+  int **move_made;
+
+  if (is_in_check(board)) {
+    move_made = make_move(board, start_row, start_col, end_row, end_col);
+    bool result = !is_in_check(move_made);
+    free_board(move_made);
+    return result;
+  }
+  move_made = make_move(board, start_row, start_col, end_row, end_col);
+  if (is_in_check(move_made)) {
+    free_board(move_made);
+    return false;
+  }
+  return true;
+}
+
+// TODO #2: Implement.
+bool is_in_check(int **board) {
+  return false;
+}
+
+bool is_in_board_limit(const int axis) {
+  return axis >= 0 || axis <= 7;
 }
 
 bool is_white_piece(const int piece) {

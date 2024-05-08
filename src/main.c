@@ -100,7 +100,7 @@ int main(void) {
             mvwprintw(credits_text->win, getcury(credits_text->win) + 2, 0, "I'm Artiom Astashonak, a third year high-school student, who's interested in computer science. I made this project to practice my C programming skills, as well as to learn ncurses library.");
             mvwprintw(credits_text->win, getcury(credits_text->win)+ 2, 0, "You can find the source code of this application at: ");
             wattron(credits_text->win, A_UNDERLINE);
-            wprintw(credits_text->win, "https://github.com/Artiom-Astashonak/cheezee");
+            wprintw(credits_text->win, "https://github.com/detectivekaktus/cheezee");
             wattroff(credits_text->win, A_UNDERLINE);
             wrefresh(credits->win);
             wrefresh(credits_text->win);
