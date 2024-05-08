@@ -51,7 +51,11 @@ int main(void) {
   while (true) {
     switch (wgetch(program->main_menu->win)) {
       case KEY_UP:
-      case KEY_RIGHT: {
+      case KEY_RIGHT:
+      case 'k':
+      case 'K':
+      case 'l':
+      case 'L': {
         if (option == 0) {
           option = 3;
         } else {
@@ -61,7 +65,11 @@ int main(void) {
         break;
       }
       case KEY_DOWN:
-      case KEY_LEFT: {
+      case KEY_LEFT:
+      case 'j':
+      case 'J':
+      case 'h':
+      case 'H': {
         if (option == 3) {
           option = 0;
         } else {

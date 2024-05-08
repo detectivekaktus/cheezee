@@ -43,7 +43,9 @@ void play(Program *program) {
   do {
     input = wgetch(program->board->win);
     switch (input) {
-      case KEY_UP: {
+      case KEY_UP:
+      case 'k':
+      case 'K': {
         if (row > 0) {
           draw_tile_row_col(program, row, col);
           draw_piece(program, row, col, cur_board[row][col]);
@@ -52,7 +54,9 @@ void play(Program *program) {
         }
         break;
       }
-      case KEY_DOWN: {
+      case KEY_DOWN:
+      case 'j':
+      case 'J': {
         if (row < 7) {
           draw_tile_row_col(program, row, col);
           draw_piece(program, row, col, cur_board[row][col]);
@@ -61,7 +65,9 @@ void play(Program *program) {
         }
         break;
       }
-      case KEY_LEFT: {
+      case KEY_LEFT:
+      case 'h':
+      case 'H': {
         if (col > 0) {
           draw_tile_row_col(program, row, col);
           draw_piece(program, row, col, cur_board[row][col]);
@@ -70,7 +76,9 @@ void play(Program *program) {
         }
         break;
       }
-      case KEY_RIGHT: {
+      case KEY_RIGHT:
+      case 'l':
+      case 'L': {
         if (col < 7) {
           draw_tile_row_col(program, row, col);
           draw_piece(program, row, col, cur_board[row][col]);
@@ -86,7 +94,9 @@ void play(Program *program) {
         do {
           input = wgetch(program->board->win);
           switch (input) {
-            case KEY_UP: {
+            case KEY_UP:
+            case 'k':
+            case 'K': {
               if (mrow > 0) {
                 draw_tile_row_col(program, mrow, mcol);
                 draw_piece(program, mrow, mcol, cur_board[mrow][mcol]);
@@ -95,7 +105,9 @@ void play(Program *program) {
               }
               break;
             }
-            case KEY_DOWN: {
+            case KEY_DOWN:
+            case 'j':
+            case 'J': {
               if (mrow < 7) {
                 draw_tile_row_col(program, mrow, mcol);
                 draw_piece(program, mrow, mcol, cur_board[mrow][mcol]);
@@ -104,7 +116,9 @@ void play(Program *program) {
               }
               break;
             }
-            case KEY_LEFT: {
+            case KEY_LEFT:
+            case 'h':
+            case 'H': {
               if (mcol > 0) {
                 draw_tile_row_col(program, mrow, mcol);
                 draw_piece(program, mrow, mcol, cur_board[mrow][mcol]);
@@ -113,7 +127,9 @@ void play(Program *program) {
               }
               break;
             }
-            case KEY_RIGHT: {
+            case KEY_RIGHT:
+            case 'l':
+            case 'L': {
               if (mcol < 7) {
                 draw_tile_row_col(program, mrow, mcol);
                 draw_piece(program, mrow, mcol, cur_board[mrow][mcol]);
