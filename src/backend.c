@@ -1,6 +1,7 @@
 #include "cheezee.h"
 #include "backend.h"
 #include "frontend.h"
+#include <stdio.h>
 
 void play(Program *program) {
   WIN *help;
@@ -144,7 +145,8 @@ void play(Program *program) {
           }
         } while (input != ESCAPE && input != ENTER);
         if (input == ESCAPE ||
-          !is_legal_move(cur_board, row, col, mrow, mcol)) break;
+          ((mrow == row) && (mcol == col)) ||
+          !is_legal_move(cur_board, prev_board, row, col, mrow, mcol)) break;
         play_move(cur_board, prev_board, row, col, mrow, mcol);
         update_board(program, cur_board, prev_board);
         draw_tile_row_col(program, mrow, mcol);
@@ -227,38 +229,89 @@ void free_board(int **board) {
   free(board);
 }
 
-int **make_move(int **board, int start_row, int start_col, int end_row, int end_col) {
+int **make_move(int **board, int srow, int scol, int erow, int ecol) {
   int **move_board = empty_board();
   write_board(board, move_board);
-  move_board[end_row][end_col] = move_board[start_row][start_col];
-  move_board[start_row][start_col] = 0;
+  move_board[erow][ecol] = move_board[srow][scol];
+  move_board[srow][scol] = 0;
   return move_board;
 }
 
-void play_move(int **cur_board, int **prev_board, int start_row, int start_col, int end_row, int end_col) {
+void play_move(int **cur_board, int **prev_board, int srow, int scol, int erow, int ecol) {
   write_board(cur_board, prev_board);
-  cur_board[end_row][end_col] = cur_board[start_row][start_col];
-  cur_board[start_row][start_col] = 0;
+  cur_board[erow][ecol] = cur_board[srow][scol];
+  cur_board[srow][scol] = 0;
 }
 
 // TODO #1: Implement the en-passant move and the casteling move.
 // These moves influence all the called functions inside the current
 // function.
-bool is_legal_move(int **board, int start_row, int start_col, int end_row, int end_col) {
+bool is_legal_move(int **cur_board, int **prev_board, int srow, int scol, int erow, int ecol) {
+  if (!is_valid_move(cur_board, prev_board, srow, scol, erow, ecol)) return false;
   int **move_made;
 
-  if (is_in_check(board)) {
-    move_made = make_move(board, start_row, start_col, end_row, end_col);
+  if (is_in_check(cur_board)) {
+    move_made = make_move(cur_board, srow, scol, erow, ecol);
     bool result = !is_in_check(move_made);
     free_board(move_made);
     return result;
   }
-  move_made = make_move(board, start_row, start_col, end_row, end_col);
+  move_made = make_move(cur_board, srow, scol, erow, ecol);
   if (is_in_check(move_made)) {
     free_board(move_made);
     return false;
   }
   return true;
+}
+
+bool is_valid_move(int **cur_board, int **prev_board, int srow, int scol, int erow, int ecol) {
+  switch (cur_board[srow][scol]) {
+    case PAWN:
+    case PAWN + BLACK: {
+      return is_valid_pawn_move(cur_board, prev_board, srow, scol, erow, ecol);
+    }
+    case KNIGHT:
+    case KNIGHT + BLACK: {
+      return true;
+    }
+    case BISHOP:
+    case BISHOP + BLACK: {
+      return true;
+    }
+    case ROOK:
+    case ROOK + BLACK: {
+      return true;
+    }
+    case QUEEN:
+    case QUEEN + BLACK: {
+      return true;
+    }
+    case KING:
+    case KING + BLACK: {
+      return true;
+    }
+    default: {
+      CRASH("Unexpected piece found during the move validation. Piece: %d", cur_board[srow][scol]);
+    }
+  }
+}
+
+bool is_valid_pawn_move(int **cur_board, int **prev_board, int srow, int scol, int erow, int ecol) {
+  Moves *moves;
+  INIT_MOVES(moves);
+  bool is_white = is_white_piece(cur_board[srow][scol]);
+  int direction = is_white ? -1 : 1;
+
+  if ((is_white && srow == 6) || (!is_white && srow == 1)) {
+    if (is_empty(cur_board[srow + direction * 2][scol])) ADD_MOVE(moves, srow + direction * 2, scol);
+  }
+  if (is_empty(cur_board[srow + direction][scol])) ADD_MOVE(moves, srow + direction, scol);
+  if (is_in_board_limit(scol + 1) && is_white != is_white_piece(cur_board[srow + direction][scol + 1])) ADD_MOVE(moves, srow + direction, scol + 1);
+  if (is_in_board_limit(scol - 1) && is_white != is_white_piece(cur_board[srow + direction][scol - 1])) ADD_MOVE(moves, srow + direction, scol - 1);
+
+  bool result = is_in_moves(moves, erow, ecol);
+  MOVES_DESTROY(moves);
+  return result;
 }
 
 // TODO #2: Implement.
@@ -268,6 +321,17 @@ bool is_in_check(int **board) {
 
 bool is_in_board_limit(const int axis) {
   return axis >= 0 || axis <= 7;
+}
+
+bool can_move(const Moves *moves) {
+  return moves->size != 0;
+}
+
+bool is_in_moves(const Moves *moves, int row, int col) {
+  for (size_t i = 0; i < moves->size; i++) {
+    if (moves->elems[i][0] == row && moves->elems[i][1] == col) return true;
+  }
+  return false;
 }
 
 bool is_white_piece(const int piece) {
