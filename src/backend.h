@@ -20,35 +20,35 @@ typedef struct {
   size_t capacity;
 } Moves;
 
-#define INIT_MOVES(obj)                                       \
-  do {                                                        \
-    obj = malloc(sizeof(Moves));                              \
-    (obj)->elems = calloc(1, sizeof(int *));                  \
-    if ((obj)->elems == NULL) CRASH("buy more RAM lol");      \
-    (obj)->size = 0;                                          \
-    (obj)->capacity = 1;                                      \
+#define INIT_MOVES(obj)                                                       \
+  do {                                                                        \
+    obj = malloc(sizeof(Moves));                                              \
+    (obj)->elems = calloc(1, sizeof(int *));                                  \
+    if ((obj)->elems == NULL) CRASH("buy more RAM lol");                      \
+    (obj)->size = 0;                                                          \
+    (obj)->capacity = 1;                                                      \
   } while (0)
 
-#define ADD_MOVE(obj, y, x)                                   \
-  do {                                                        \
-    if ((obj)->size == (obj)->capacity) {                     \
-      (obj)->capacity *= 2;                                   \
-      (obj)->elems = realloc((obj)->elems, (obj)->capacity);  \
-      if ((obj)->elems == NULL) CRASH("buy more RAM lol");    \
-    }                                                         \
-    (obj)->elems[(obj)->size] = calloc(2, sizeof(int));       \
-    (obj)->elems[(obj)->size][0] = y;                         \
-    (obj)->elems[(obj)->size][1] = x;                         \
-    (obj)->size++;                                            \
+#define ADD_MOVE(obj, y, x)                                                   \
+  do {                                                                        \
+    if ((obj)->size == (obj)->capacity) {                                     \
+      (obj)->capacity *= 2;                                                   \
+      (obj)->elems = realloc((obj)->elems, (obj)->capacity * sizeof(int *));  \
+      if ((obj)->elems == NULL) CRASH("buy more RAM lol");                    \
+    }                                                                         \
+    (obj)->elems[(obj)->size] = calloc(2, sizeof(int));                       \
+    (obj)->elems[(obj)->size][0] = y;                                         \
+    (obj)->elems[(obj)->size][1] = x;                                         \
+    (obj)->size++;                                                            \
   } while (0)
 
-#define MOVES_DESTROY(obj)                                    \
-  do {                                                        \
-    for (size_t i = 0; i < (obj)->size; i++) {                \
-      free((obj)->elems[i]);                                  \
-    }                                                         \
-    free((obj)->elems);                                       \
-    free(obj);                                                \
+#define MOVES_DESTROY(obj)                                                    \
+  do {                                                                        \
+    for (size_t i = 0; i < (obj)->size; i++) {                                \
+      free((obj)->elems[i]);                                                  \
+    }                                                                         \
+    free((obj)->elems);                                                       \
+    free(obj);                                                                \
   } while (0)
 
 void play(Program *program);
@@ -61,6 +61,8 @@ void play_move(int **cur_board, int **prev_board, int srow, int scol, int erow, 
 bool is_legal_move(int **cur_board, int **prev_board, int srow, int scol, int erow, int ecol);
 bool is_valid_move(int **cur_board, int **prev_board, int srow, int scol, int erow, int ecol);
 bool is_valid_pawn_move(int **cur_board, int **prev_board, int srow, int scol, int erow, int ecol);
+bool is_valid_bishop_move(int **board, int srow, int scol, int erow, int ecol);
+void traverse_diagonal(Moves *moves, int **board, int row, int col, const int deltarow, const int deltacol, bool is_white);
 bool is_in_check(int **board);
 bool is_in_board_limit(const int axis);
 bool can_move(const Moves *moves);

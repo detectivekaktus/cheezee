@@ -1,7 +1,6 @@
 #include "cheezee.h"
 #include "backend.h"
 #include "frontend.h"
-#include <stdio.h>
 
 void play(Program *program) {
   WIN *help;
@@ -276,7 +275,7 @@ bool is_valid_move(int **cur_board, int **prev_board, int srow, int scol, int er
     }
     case BISHOP:
     case BISHOP + BLACK: {
-      return true;
+      return is_valid_bishop_move(cur_board, srow, scol, erow, ecol);
     }
     case ROOK:
     case ROOK + BLACK: {
@@ -314,13 +313,42 @@ bool is_valid_pawn_move(int **cur_board, int **prev_board, int srow, int scol, i
   return result;
 }
 
+bool is_valid_bishop_move(int **board, int srow, int scol, int erow, int ecol) {
+  if (abs(erow - srow) != abs(ecol - scol)) return false;
+  Moves *moves;
+  INIT_MOVES(moves);
+  bool is_white = is_white_piece(board[srow][scol]);
+
+  traverse_diagonal(moves, board, srow + 1, scol + 1, 1, 1, is_white); 
+  traverse_diagonal(moves, board, srow - 1, scol - 1, -1, -1, is_white);
+  traverse_diagonal(moves, board, srow + 1, scol - 1, 1, -1, is_white);
+  traverse_diagonal(moves, board, srow - 1, scol + 1, -1, 1, is_white);
+
+  bool result = is_in_moves(moves, erow, ecol);
+  MOVES_DESTROY(moves);
+  return result;
+}
+
+void traverse_diagonal(Moves *moves, int **board, int row, int col, const int deltarow, const int deltacol, bool is_white) {
+  while (is_in_board_limit(row) && is_in_board_limit(col)) {
+    if (!is_empty(board[row][col]) && is_white != is_white_piece(board[row][col])) {
+      ADD_MOVE(moves, row, col);
+      break;
+    }
+    if (!is_empty(board[row][col] && is_white == is_white_piece(board[row][col]))) break;
+    ADD_MOVE(moves, row, col);
+    row += deltarow;
+    col += deltacol;
+  }
+}
+
 // TODO #2: Implement.
 bool is_in_check(int **board) {
   return false;
 }
 
 bool is_in_board_limit(const int axis) {
-  return axis >= 0 || axis <= 7;
+  return axis >= 0 && axis <= 7;
 }
 
 bool can_move(const Moves *moves) {
@@ -328,6 +356,7 @@ bool can_move(const Moves *moves) {
 }
 
 bool is_in_moves(const Moves *moves, int row, int col) {
+  if (!can_move(moves)) return false;
   for (size_t i = 0; i < moves->size; i++) {
     if (moves->elems[i][0] == row && moves->elems[i][1] == col) return true;
   }

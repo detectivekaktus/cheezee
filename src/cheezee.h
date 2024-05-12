@@ -12,8 +12,8 @@
 
 #define CRASH(msg, ...) \
   do { \
-    fprintf(stderr, msg, ##__VA_ARGS__); \
     endwin(); \
+    fprintf(stderr, msg, ##__VA_ARGS__); \
     exit(1); \
   } while(0)
 
