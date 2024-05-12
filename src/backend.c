@@ -283,7 +283,8 @@ bool is_valid_move(int **cur_board, int **prev_board, int srow, int scol, int er
     }
     case QUEEN:
     case QUEEN + BLACK: {
-      return true;
+      return is_valid_bishop_move(cur_board, srow, scol, erow, ecol) ||
+        is_valid_rook_move(cur_board, srow, scol, erow, ecol);
     }
     case KING:
     case KING + BLACK: {

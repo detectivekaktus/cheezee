@@ -10,6 +10,8 @@ all: $(TARGETS)
 $(TARGETS):
 	$(CC) $(CFLAGS) -c $(SOURCE) $(LIBS)
 
+run: clean all
+
 clean:
 	rm *.o
 	rm cheezee
