@@ -279,7 +279,7 @@ bool is_valid_move(int **cur_board, int **prev_board, int srow, int scol, int er
     }
     case ROOK:
     case ROOK + BLACK: {
-      return true;
+      return is_valid_rook_move(cur_board, srow, scol, erow, ecol);
     }
     case QUEEN:
     case QUEEN + BLACK: {
@@ -319,23 +319,39 @@ bool is_valid_bishop_move(int **board, int srow, int scol, int erow, int ecol) {
   INIT_MOVES(moves);
   bool is_white = is_white_piece(board[srow][scol]);
 
-  traverse_diagonal(moves, board, srow + 1, scol + 1, 1, 1, is_white); 
-  traverse_diagonal(moves, board, srow - 1, scol - 1, -1, -1, is_white);
-  traverse_diagonal(moves, board, srow + 1, scol - 1, 1, -1, is_white);
-  traverse_diagonal(moves, board, srow - 1, scol + 1, -1, 1, is_white);
+  traverse_axis(moves, board, srow + 1, scol + 1, 1, 1, is_white); 
+  traverse_axis(moves, board, srow - 1, scol - 1, -1, -1, is_white);
+  traverse_axis(moves, board, srow + 1, scol - 1, 1, -1, is_white);
+  traverse_axis(moves, board, srow - 1, scol + 1, -1, 1, is_white);
 
   bool result = is_in_moves(moves, erow, ecol);
   MOVES_DESTROY(moves);
   return result;
 }
 
-void traverse_diagonal(Moves *moves, int **board, int row, int col, const int deltarow, const int deltacol, bool is_white) {
+bool is_valid_rook_move(int **board, int srow, int scol, int erow, int ecol) {
+  if (!(srow != erow) || (scol != ecol)) return false;
+  Moves *moves;
+  INIT_MOVES(moves);
+  bool is_white = is_white_piece(board[srow][scol]);
+
+  traverse_axis(moves, board, srow + 1, scol, 1, 0, is_white);
+  traverse_axis(moves, board, srow - 1, scol, -1, 0, is_white);
+  traverse_axis(moves, board, srow, scol + 1, 0, 1, is_white);
+  traverse_axis(moves, board, srow, scol - 1, 0, -1, is_white);
+
+  bool result = is_in_moves(moves, erow, ecol);
+  MOVES_DESTROY(moves);
+  return result;
+}
+
+void traverse_axis(Moves *moves, int **board, int row, int col, const int deltarow, const int deltacol, const bool is_white) {
   while (is_in_board_limit(row) && is_in_board_limit(col)) {
     if (!is_empty(board[row][col]) && is_white != is_white_piece(board[row][col])) {
       ADD_MOVE(moves, row, col);
-      break;
+      return;
     }
-    if (!is_empty(board[row][col] && is_white == is_white_piece(board[row][col]))) break;
+    if (!is_empty(board[row][col] && is_white == is_white_piece(board[row][col]))) return;
     ADD_MOVE(moves, row, col);
     row += deltarow;
     col += deltacol;
