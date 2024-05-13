@@ -271,7 +271,7 @@ bool is_valid_move(int **cur_board, int **prev_board, int srow, int scol, int er
     }
     case KNIGHT:
     case KNIGHT + BLACK: {
-      return true;
+      return is_valid_knight_move(cur_board, srow, scol, erow, ecol);
     }
     case BISHOP:
     case BISHOP + BLACK: {
@@ -302,12 +302,36 @@ bool is_valid_pawn_move(int **cur_board, int **prev_board, int srow, int scol, i
   bool is_white = is_white_piece(cur_board[srow][scol]);
   int direction = is_white ? -1 : 1;
 
-  if ((is_white && srow == 6) || (!is_white && srow == 1)) {
+  if ((is_white && srow == 6) || (!is_white && srow == 1))
     if (is_empty(cur_board[srow + direction * 2][scol])) ADD_MOVE(moves, srow + direction * 2, scol);
+  if (is_empty(cur_board[srow + direction][scol]))
+    ADD_MOVE(moves, srow + direction, scol);
+  if (is_in_board_limit(scol + 1) &&
+    is_white != is_white_piece(cur_board[srow + direction][scol + 1])) ADD_MOVE(moves, srow + direction, scol + 1);
+  if (is_in_board_limit(scol - 1) &&
+    is_white != is_white_piece(cur_board[srow + direction][scol - 1])) ADD_MOVE(moves, srow + direction, scol - 1);
+
+  bool result = is_in_moves(moves, erow, ecol);
+  MOVES_DESTROY(moves);
+  return result;
+}
+
+bool is_valid_knight_move(int **board, int srow, int scol, int erow, int ecol) {
+  if (abs(erow - srow) * abs(ecol - scol) != 2) return false;
+  Moves *moves;
+  INIT_MOVES(moves);
+  bool is_white = is_white_piece(board[srow][scol]);
+
+  int deltay[] = { -2, -2, -1, -1, 1, 1, 2, 2 };
+  int deltax[] = { -1, 1, -2, 2, -2, 2, -1, 1 };
+  for (int i = 0; i < MAX_KNIGHT_MOVES; i++) {
+    if (is_in_board_limit(srow + deltay[i]) &&
+      is_in_board_limit(scol + deltax[i])) {
+      if (is_empty(board[srow + deltay[i]][scol + deltax[i]]) ||
+          (!is_empty(board[srow + deltay[i]][scol + deltax[i]]) && is_white != is_white_piece(board[srow + deltay[i]][scol + deltax[i]])))
+        ADD_MOVE(moves, srow + deltay[i], scol + deltax[i]);
+    }
   }
-  if (is_empty(cur_board[srow + direction][scol])) ADD_MOVE(moves, srow + direction, scol);
-  if (is_in_board_limit(scol + 1) && is_white != is_white_piece(cur_board[srow + direction][scol + 1])) ADD_MOVE(moves, srow + direction, scol + 1);
-  if (is_in_board_limit(scol - 1) && is_white != is_white_piece(cur_board[srow + direction][scol - 1])) ADD_MOVE(moves, srow + direction, scol - 1);
 
   bool result = is_in_moves(moves, erow, ecol);
   MOVES_DESTROY(moves);
@@ -331,7 +355,7 @@ bool is_valid_bishop_move(int **board, int srow, int scol, int erow, int ecol) {
 }
 
 bool is_valid_rook_move(int **board, int srow, int scol, int erow, int ecol) {
-  if (!(srow != erow) || (scol != ecol)) return false;
+  if ((srow != erow) && (scol != ecol)) return false;
   Moves *moves;
   INIT_MOVES(moves);
   bool is_white = is_white_piece(board[srow][scol]);
