@@ -21,6 +21,7 @@ typedef struct {
 } Moves;
 
 #define MAX_KNIGHT_MOVES 8
+#define MAX_KING_MOVES   8
 
 #define INIT_MOVES(obj)                                                       \
   do {                                                                        \
@@ -66,6 +67,7 @@ bool is_valid_pawn_move(int **cur_board, int **prev_board, int srow, int scol, i
 bool is_valid_knight_move(int **board, int srow, int scol, int erow, int ecol);
 bool is_valid_bishop_move(int **board, int srow, int scol, int erow, int ecol);
 bool is_valid_rook_move(int **board, int srow, int scol, int erow, int ecol);
+bool is_valid_king_move(int **board, int srow, int scol, int erow, int ecol);
 void traverse_axis(Moves *moves, int **board, int row, int col, const int deltarow, const int deltacol, const bool is_white);
 bool is_in_check(int **board);
 bool is_in_board_limit(const int axis);

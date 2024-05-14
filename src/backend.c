@@ -288,7 +288,7 @@ bool is_valid_move(int **cur_board, int **prev_board, int srow, int scol, int er
     }
     case KING:
     case KING + BLACK: {
-      return true;
+      return is_valid_king_move(cur_board, srow, scol, erow, ecol);
     }
     default: {
       CRASH("Unexpected piece found during the move validation. Piece: %d", cur_board[srow][scol]);
@@ -364,6 +364,26 @@ bool is_valid_rook_move(int **board, int srow, int scol, int erow, int ecol) {
   traverse_axis(moves, board, srow - 1, scol, -1, 0, is_white);
   traverse_axis(moves, board, srow, scol + 1, 0, 1, is_white);
   traverse_axis(moves, board, srow, scol - 1, 0, -1, is_white);
+
+  bool result = is_in_moves(moves, erow, ecol);
+  MOVES_DESTROY(moves);
+  return result;
+}
+
+bool is_valid_king_move(int **board, int srow, int scol, int erow, int ecol) {
+  Moves *moves;
+  INIT_MOVES(moves);
+  bool is_white = is_white_piece(board[srow][scol]);
+
+  int y[] = { -1, -1, -1, 0, 0, 1, 1, 1 };
+  int x[] = { -1, 0, 1, -1, 1, -1, 0, 1 };
+  for (int i = 0; i < MAX_KING_MOVES; i++) {
+    if (is_in_board_limit(srow + y[i]) && is_in_board_limit(scol + x[i])) {
+      if (is_empty(board[srow + y[i]][scol + x[i]]) ||
+          (!is_empty(board[srow + y[i]][scol + x[i]]) && is_white != is_white_piece(board[srow + y[i]][scol + x[i]])))
+        ADD_MOVE(moves, srow + y[i], scol + x[i]);
+    }
+  }
 
   bool result = is_in_moves(moves, erow, ecol);
   MOVES_DESTROY(moves);
