@@ -86,7 +86,9 @@ void play(Program *program) {
         break;
       }
       case ENTER: {
-        if (is_empty(board->current[row][col])) break;
+        if (is_empty(board->current[row][col]) ||
+          (board->is_white_turn && !is_white_piece(board->current[row][col])) ||
+          (!board->is_white_turn && is_white_piece(board->current[row][col]))) break;
         int mrow = row;
         int mcol = col;
         do {
