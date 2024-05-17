@@ -29,19 +29,13 @@ void play(Program *program) {
   wrefresh(log->win);
   wrefresh(log_text->win);
 
-  int **cur_board = stdboard();
-  int **prev_board = empty_board();
-  int white_king_row = 7;
-  int white_king_col = 4;
-  int black_king_row = 0;
-  int black_king_col = 4;
-  bool is_white_turn = true;
+  Board *board = start_board();
   int row = 0;
   int col = 0;
   int input;
 
   draw_board(program);
-  draw_pieces(program, cur_board);
+  draw_pieces(program, board);
   highlight_tile(program, row, col, SELECTION);
   keypad(program->board->win, true);
   do {
@@ -52,7 +46,7 @@ void play(Program *program) {
       case 'K': {
         if (row > 0) {
           draw_tile_row_col(program, row, col);
-          draw_piece(program, row, col, cur_board[row][col]);
+          draw_piece(program, row, col, board->current[row][col]);
           row--;
           highlight_tile(program, row, col, SELECTION);
         }
@@ -63,7 +57,7 @@ void play(Program *program) {
       case 'J': {
         if (row < 7) {
           draw_tile_row_col(program, row, col);
-          draw_piece(program, row, col, cur_board[row][col]);
+          draw_piece(program, row, col, board->current[row][col]);
           row++;
           highlight_tile(program, row, col, SELECTION);
         }
@@ -74,7 +68,7 @@ void play(Program *program) {
       case 'H': {
         if (col > 0) {
           draw_tile_row_col(program, row, col);
-          draw_piece(program, row, col, cur_board[row][col]);
+          draw_piece(program, row, col, board->current[row][col]);
           col--;
           highlight_tile(program, row, col, SELECTION);
         }
@@ -85,14 +79,14 @@ void play(Program *program) {
       case 'L': {
         if (col < 7) {
           draw_tile_row_col(program, row, col);
-          draw_piece(program, row, col, cur_board[row][col]);
+          draw_piece(program, row, col, board->current[row][col]);
           col++;
           highlight_tile(program, row, col, SELECTION);
         }
         break;
       }
       case ENTER: {
-        if (is_empty(cur_board[row][col])) break;
+        if (is_empty(board->current[row][col])) break;
         int mrow = row;
         int mcol = col;
         do {
@@ -103,7 +97,7 @@ void play(Program *program) {
             case 'K': {
               if (mrow > 0) {
                 draw_tile_row_col(program, mrow, mcol);
-                draw_piece(program, mrow, mcol, cur_board[mrow][mcol]);
+                draw_piece(program, mrow, mcol, board->current[mrow][mcol]);
                 mrow--;
                 highlight_tile(program, mrow, mcol, SELECTION);
               }
@@ -114,7 +108,7 @@ void play(Program *program) {
             case 'J': {
               if (mrow < 7) {
                 draw_tile_row_col(program, mrow, mcol);
-                draw_piece(program, mrow, mcol, cur_board[mrow][mcol]);
+                draw_piece(program, mrow, mcol, board->current[mrow][mcol]);
                 mrow++;
                 highlight_tile(program, mrow, mcol, SELECTION);
               }
@@ -125,7 +119,7 @@ void play(Program *program) {
             case 'H': {
               if (mcol > 0) {
                 draw_tile_row_col(program, mrow, mcol);
-                draw_piece(program, mrow, mcol, cur_board[mrow][mcol]);
+                draw_piece(program, mrow, mcol, board->current[mrow][mcol]);
                 mcol--;
                 highlight_tile(program, mrow, mcol, SELECTION);
               }
@@ -136,7 +130,7 @@ void play(Program *program) {
             case 'L': {
               if (mcol < 7) {
                 draw_tile_row_col(program, mrow, mcol);
-                draw_piece(program, mrow, mcol, cur_board[mrow][mcol]);
+                draw_piece(program, mrow, mcol, board->current[mrow][mcol]);
                 mcol++;
                 highlight_tile(program, mrow, mcol, SELECTION);
               }
@@ -149,15 +143,15 @@ void play(Program *program) {
         } while (input != ESCAPE && input != ENTER);
         if (input == ESCAPE ||
           ((mrow == row) && (mcol == col)) ||
-          !is_legal_move(cur_board, prev_board, row, col, mrow, mcol, is_white_turn, is_white_turn ? white_king_row : black_king_row, is_white_turn ? white_king_col : black_king_col)) break;
-        play_move(cur_board, prev_board, row, col, mrow, mcol, is_white_turn ? &white_king_row : &black_king_row, is_white_turn ? &white_king_col : &black_king_col);
-        update_board(program, cur_board, prev_board);
+          !is_legal_move(board, row, col, mrow, mcol)) break;
+        play_move(board, row, col, mrow, mcol);
+        update_board(program, board);
         draw_tile_row_col(program, mrow, mcol);
-        draw_piece(program, mrow, mcol, cur_board[mrow][mcol]);
+        draw_piece(program, mrow, mcol, board->current[mrow][mcol]);
         highlight_tile(program, mrow, mcol, SELECTION);
         row = mrow;
         col = mcol;
-        is_white_turn = !is_white_turn;
+        board->is_white_turn = !board->is_white_turn;
         break;
       }
       default: {
@@ -170,11 +164,47 @@ void play(Program *program) {
   DESTROY_WINDOW(log);
   DESTROY_WINDOW(log_text);
   DESTROY_WINDOW(program->board);
-  free_board(cur_board);
-  free_board(prev_board);
+  delete_board(board);
 }
 
-int **empty_board() {
+Board *start_board() {
+  Board *board = malloc(sizeof(Board));
+  if (board == NULL) CRASH("buy more RAM lol");
+  board->current = stdmatrix();
+  board->previous = empty_matrix();
+  board->is_white_turn = true;
+  board->has_white_king_moved = false;
+  board->white_king_row = 7;
+  board->white_king_col = 4;
+  board->has_black_king_moved = false;
+  board->black_king_row = 0;
+  board->black_king_col = 4;
+  board->game_state = CONTINUE;
+  return board;
+}
+
+void copy_board(const Board *source, Board *destination) {
+  destination->current = empty_matrix();
+  write_matrix(source->current, destination->current);
+  destination->previous = empty_matrix();
+  write_matrix(source->previous, destination->previous);
+  destination->is_white_turn = source->is_white_turn;
+  destination->has_white_king_moved = source->has_white_king_moved;
+  destination->white_king_row = source->white_king_row;
+  destination->white_king_col = source->white_king_col;
+  destination->has_black_king_moved = source->has_black_king_moved;
+  destination->black_king_row = source->black_king_row;
+  destination->black_king_col = source->black_king_col;
+  destination->game_state = source->game_state;
+}
+
+void delete_board(Board *board) {
+  free_matrix(board->current);
+  free_matrix(board->previous);
+  free(board);
+}
+
+int **empty_matrix() {
   int **board = calloc(8, sizeof(int *));
   if (board == NULL) CRASH("buy more RAM lol");
   for (int i = 0; i < 8; i++) {
@@ -184,7 +214,7 @@ int **empty_board() {
   return board;
 }
 
-int **stdboard() {
+int **stdmatrix() {
   int **board = calloc(8, sizeof(int *));
   if (board == NULL) CRASH("buy more RAM lol");
   for (int i = 0; i < 8; i++) {
@@ -217,7 +247,7 @@ int **stdboard() {
   return board;
 }
 
-void write_board(int **source, int **destination) {
+void write_matrix(int **source, int **destination) {
   for (int i = 0; i < 8; i++) {
     for (int j = 0; j < 8; j++) {
       destination[i][j] = source[i][j];
@@ -225,94 +255,103 @@ void write_board(int **source, int **destination) {
   }
 }
 
-void free_board(int **board) {
+void free_matrix(int **board) {
   for (int i = 0; i < 8; i++) {
     free(board[i]);
   }
   free(board);
 }
 
-int **make_move(int **board, int srow, int scol, int erow, int ecol, int *king_row, int *king_col) {
-  int **move_board = empty_board();
-  write_board(board, move_board);
-  if (board[srow][scol] == KING || board[srow][scol] == KING + BLACK) {
-    *king_row = erow;
-    *king_col = ecol;
+Board *make_move(Board *board, int srow, int scol, int erow, int ecol) {
+  Board *move_made = malloc(sizeof(Board));
+  copy_board(board, move_made);
+  if (move_made->current[srow][scol] == KING) {
+    move_made->white_king_row = erow;
+    move_made->white_king_col = ecol;
   }
-  move_board[erow][ecol] = move_board[srow][scol];
-  move_board[srow][scol] = 0;
-  return move_board;
+  if (move_made->current[srow][scol] == KING + BLACK) {
+    move_made->black_king_row = erow;
+    move_made->black_king_col = ecol;
+  }
+  move_made->current[erow][ecol] = move_made->current[srow][scol];
+  move_made->current[srow][scol] = 0;
+  return move_made;
 }
 
-void play_move(int **cur_board, int **prev_board, int srow, int scol, int erow, int ecol, int *king_row, int *king_col) {
-  write_board(cur_board, prev_board);
-  if (cur_board[srow][scol] == KING || cur_board[srow][scol] == KING + BLACK) {
-    *king_row = erow;
-    *king_col = ecol;
+void play_move(Board *board, int srow, int scol, int erow, int ecol) {
+  write_matrix(board->current, board->previous);
+  if (board->current[srow][scol] == KING) {
+    board->white_king_row = erow;
+    board->white_king_col = ecol;
   }
-  cur_board[erow][ecol] = cur_board[srow][scol];
-  cur_board[srow][scol] = 0;
+  if (board->current[srow][scol] == KING + BLACK) {
+    board->black_king_row = erow;
+    board->black_king_col = ecol;
+  }
+  board->current[erow][ecol] = board->current[srow][scol];
+  board->current[srow][scol] = 0;
 }
 
-bool is_legal_move(int **cur_board, int **prev_board, int srow, int scol, int erow, int ecol, const bool is_white_turn, int king_row, int king_col) {
-  if (!is_valid_move(cur_board, prev_board, srow, scol, erow, ecol)) return false;
-  int **move_made;
+bool is_legal_move(Board *board, int srow, int scol, int erow, int ecol) {
+  if (!is_valid_move(board, srow, scol, erow, ecol)) return false;
 
-  if (is_in_check(cur_board, prev_board, is_white_turn, king_row, king_col)) {
-    move_made = make_move(cur_board, srow, scol, erow, ecol, &king_row, &king_col);
-    bool result = !is_in_check(move_made, cur_board, is_white_turn, king_row, king_col);
-    free_board(move_made);
+  if (is_in_check(board)) {
+    Board *move_made = make_move(board, srow, scol, erow, ecol);
+    bool result = !is_in_check(move_made);
+    delete_board(move_made);
     return result;
+  } else {
+    Board *move_made = make_move(board, srow, scol, erow, ecol);
+    if (is_in_check(move_made)) {
+      delete_board(move_made);
+      return false;
+    }
+    delete_board(move_made);
+    return true;
   }
-  move_made = make_move(cur_board, srow, scol, erow, ecol, &king_row, &king_col);
-  if (is_in_check(move_made, prev_board, is_white_turn, king_row, king_col)) {
-    free_board(move_made);
-    return false;
-  }
-  return true;
 }
 
-bool is_valid_move(int **cur_board, int **prev_board, int srow, int scol, int erow, int ecol) {
-  switch (cur_board[srow][scol]) {
+bool is_valid_move(Board *board, int srow, int scol, int erow, int ecol) {
+  switch (board->current[srow][scol]) {
     case PAWN:
     case PAWN + BLACK: {
-      return is_valid_pawn_move(cur_board, prev_board, srow, scol, erow, ecol);
+      return is_valid_pawn_move(board, srow, scol, erow, ecol);
     }
     case KNIGHT:
     case KNIGHT + BLACK: {
-      return is_valid_knight_move(cur_board, srow, scol, erow, ecol);
+      return is_valid_knight_move(board, srow, scol, erow, ecol);
     }
     case BISHOP:
     case BISHOP + BLACK: {
-      return is_valid_bishop_move(cur_board, srow, scol, erow, ecol);
+      return is_valid_bishop_move(board, srow, scol, erow, ecol);
     }
     case ROOK:
     case ROOK + BLACK: {
-      return is_valid_rook_move(cur_board, srow, scol, erow, ecol);
+      return is_valid_rook_move(board, srow, scol, erow, ecol);
     }
     case QUEEN:
     case QUEEN + BLACK: {
-      return is_valid_bishop_move(cur_board, srow, scol, erow, ecol) ||
-        is_valid_rook_move(cur_board, srow, scol, erow, ecol);
+      return is_valid_bishop_move(board, srow, scol, erow, ecol) ||
+        is_valid_rook_move(board, srow, scol, erow, ecol);
     }
     case KING:
     case KING + BLACK: {
-      return is_valid_king_move(cur_board, srow, scol, erow, ecol);
+      return is_valid_king_move(board, srow, scol, erow, ecol);
     }
     default: {
-      CRASH("Unexpected piece found during the move validation. Piece: %d", cur_board[srow][scol]);
+      CRASH("Unexpected piece found during the move validation. Piece: %d", board->current[srow][scol]);
     }
   }
 }
 
-bool is_valid_pawn_move(int **cur_board, int **prev_board, int srow, int scol, int erow, int ecol) {
-  Moves *moves = get_pawn_moves(cur_board, prev_board, srow, scol);
+bool is_valid_pawn_move(Board *board, int srow, int scol, int erow, int ecol) {
+  Moves *moves = get_pawn_moves(board, srow, scol);
   bool result = is_in_moves(moves, erow, ecol);
   MOVES_DESTROY(moves);
   return result;
 }
 
-bool is_valid_knight_move(int **board, int srow, int scol, int erow, int ecol) {
+bool is_valid_knight_move(Board *board, int srow, int scol, int erow, int ecol) {
   if (abs(erow - srow) * abs(ecol - scol) != 2) return false;
   Moves *moves = get_knight_moves(board, srow, scol);
   bool result = is_in_moves(moves, erow, ecol);
@@ -320,7 +359,7 @@ bool is_valid_knight_move(int **board, int srow, int scol, int erow, int ecol) {
   return result;
 }
 
-bool is_valid_bishop_move(int **board, int srow, int scol, int erow, int ecol) {
+bool is_valid_bishop_move(Board *board, int srow, int scol, int erow, int ecol) {
   if (abs(erow - srow) != abs(ecol - scol)) return false;
   Moves *moves = get_bishop_moves(board, srow, scol);
   bool result = is_in_moves(moves, erow, ecol);
@@ -328,7 +367,7 @@ bool is_valid_bishop_move(int **board, int srow, int scol, int erow, int ecol) {
   return result;
 }
 
-bool is_valid_rook_move(int **board, int srow, int scol, int erow, int ecol) {
+bool is_valid_rook_move(Board *board, int srow, int scol, int erow, int ecol) {
   if ((srow != erow) && (scol != ecol)) return false;
   Moves *moves = get_rook_moves(board, srow, scol);
   bool result = is_in_moves(moves, erow, ecol);
@@ -336,51 +375,51 @@ bool is_valid_rook_move(int **board, int srow, int scol, int erow, int ecol) {
   return result;
 }
 
-bool is_valid_king_move(int **board, int srow, int scol, int erow, int ecol) {
+bool is_valid_king_move(Board *board, int srow, int scol, int erow, int ecol) {
   Moves *moves = get_king_moves(board, srow, scol);
   bool result = is_in_moves(moves, erow, ecol);
   MOVES_DESTROY(moves);
   return result;
 }
 
-void traverse_axis(Moves *moves, int **board, int row, int col, const int deltarow, const int deltacol, const bool is_white) {
+void traverse_axis(Moves *moves, Board *board, int row, int col, const int deltarow, const int deltacol, const bool is_white) {
   while (is_in_board_limit(row) && is_in_board_limit(col)) {
-    if (!is_empty(board[row][col]) && is_white != is_white_piece(board[row][col])) {
+    if (!is_empty(board->current[row][col]) && is_white != is_white_piece(board->current[row][col])) {
       ADD_MOVE(moves, row, col);
       return;
     }
-    if (!is_empty(board[row][col] && is_white == is_white_piece(board[row][col]))) return;
+    if (!is_empty(board->current[row][col] && is_white == is_white_piece(board->current[row][col]))) return;
     ADD_MOVE(moves, row, col);
     row += deltarow;
     col += deltacol;
   }
 }
 
-Moves *get_moves(int **cur_board, int **prev_board, const int piece, int row, int col) {
+Moves *get_moves(Board *board, const int piece, int row, int col) {
   switch (piece) {
     case PAWN:
     case PAWN + BLACK: {
-      return get_pawn_moves(cur_board, prev_board, row, col);
+      return get_pawn_moves(board, row, col);
     }
     case KNIGHT:
     case KNIGHT + BLACK: {
-      return get_knight_moves(cur_board, row, col);
+      return get_knight_moves(board, row, col);
     }
     case BISHOP:
     case BISHOP + BLACK: {
-      return get_bishop_moves(cur_board, row, col);
+      return get_bishop_moves(board, row, col);
     }
     case ROOK:
     case ROOK + BLACK: {
-      return get_rook_moves(cur_board, row, col);
+      return get_rook_moves(board, row, col);
     }
     case QUEEN:
     case QUEEN + BLACK: {
-      return get_queen_moves(cur_board, row, col);
+      return get_queen_moves(board, row, col);
     }
     case KING:
     case KING + BLACK: {
-      return get_king_moves(cur_board, row, col);
+      return get_king_moves(board, row, col);
     }
     default: {
       CRASH("Unexpected piece found during moves fetching. Piece: %d", piece);
@@ -388,36 +427,36 @@ Moves *get_moves(int **cur_board, int **prev_board, const int piece, int row, in
   }
 }
 
-Moves *get_pawn_moves(int **cur_board, int **prev_board, int row, int col) {
+Moves *get_pawn_moves(Board *board, int row, int col) {
   Moves *moves;
   INIT_MOVES(moves);
-  bool is_white = is_white_piece(cur_board[row][col]);
+  bool is_white = is_white_piece(board->current[row][col]);
   int direction = is_white ? -1 : 1;
 
   if ((is_white && row == 6) || (!is_white && row == 1))
-    if (is_empty(cur_board[row + direction * 2][col])) ADD_MOVE(moves, row + direction * 2, col);
-  if (is_empty(cur_board[row + direction][col]))
+    if (is_empty(board->current[row + direction * 2][col])) ADD_MOVE(moves, row + direction * 2, col);
+  if (is_empty(board->current[row + direction][col]))
     ADD_MOVE(moves, row + direction, col);
   if (is_in_board_limit(col + 1) &&
-    is_white != is_white_piece(cur_board[row + direction][col + 1])) ADD_MOVE(moves, row + direction, col + 1);
+    is_white != is_white_piece(board->current[row + direction][col + 1])) ADD_MOVE(moves, row + direction, col + 1);
   if (is_in_board_limit(col - 1) &&
-    is_white != is_white_piece(cur_board[row + direction][col - 1])) ADD_MOVE(moves, row + direction, col - 1);
+    is_white != is_white_piece(board->current[row + direction][col - 1])) ADD_MOVE(moves, row + direction, col - 1);
 
   return moves;
 }
 
-Moves *get_knight_moves(int **board, int row, int col) {
+Moves *get_knight_moves(Board *board, int row, int col) {
   Moves *moves;
   INIT_MOVES(moves);
-  bool is_white = is_white_piece(board[row][col]);
+  bool is_white = is_white_piece(board->current[row][col]);
 
   int deltay[] = { -2, -2, -1, -1, 1, 1, 2, 2 };
   int deltax[] = { -1, 1, -2, 2, -2, 2, -1, 1 };
   for (int i = 0; i < MAX_KNIGHT_MOVES; i++) {
     if (is_in_board_limit(row + deltay[i]) &&
       is_in_board_limit(col + deltax[i])) {
-      if (is_empty(board[row + deltay[i]][col + deltax[i]]) ||
-          (!is_empty(board[row + deltay[i]][col + deltax[i]]) && is_white != is_white_piece(board[row + deltay[i]][col + deltax[i]])))
+      if (is_empty(board->current[row + deltay[i]][col + deltax[i]]) ||
+          (!is_empty(board->current[row + deltay[i]][col + deltax[i]]) && is_white != is_white_piece(board->current[row + deltay[i]][col + deltax[i]])))
         ADD_MOVE(moves, row + deltay[i], col + deltax[i]);
     }
   }
@@ -425,10 +464,10 @@ Moves *get_knight_moves(int **board, int row, int col) {
   return moves;
 }
 
-Moves *get_bishop_moves(int **board, int row, int col) {
+Moves *get_bishop_moves(Board *board, int row, int col) {
   Moves *moves;
   INIT_MOVES(moves);
-  bool is_white = is_white_piece(board[row][col]);
+  bool is_white = is_white_piece(board->current[row][col]);
 
   traverse_axis(moves, board, row + 1, col + 1, 1, 1, is_white); 
   traverse_axis(moves, board, row - 1, col - 1, -1, -1, is_white);
@@ -438,10 +477,10 @@ Moves *get_bishop_moves(int **board, int row, int col) {
   return moves;
 }
 
-Moves *get_rook_moves(int **board, int row, int col) {
+Moves *get_rook_moves(Board *board, int row, int col) {
   Moves *moves;
   INIT_MOVES(moves);
-  bool is_white = is_white_piece(board[row][col]);
+  bool is_white = is_white_piece(board->current[row][col]);
 
   traverse_axis(moves, board, row + 1, col, 1, 0, is_white);
   traverse_axis(moves, board, row - 1, col, -1, 0, is_white);
@@ -451,10 +490,10 @@ Moves *get_rook_moves(int **board, int row, int col) {
   return moves;
 }
 
-Moves *get_queen_moves(int **board, int row, int col) {
+Moves *get_queen_moves(Board *board, int row, int col) {
   Moves *moves;
   INIT_MOVES(moves);
-  bool is_white = is_white_piece(board[row][col]);
+  bool is_white = is_white_piece(board->current[row][col]);
 
   traverse_axis(moves, board, row + 1, col + 1, 1, 1, is_white); 
   traverse_axis(moves, board, row - 1, col - 1, -1, -1, is_white);
@@ -469,17 +508,17 @@ Moves *get_queen_moves(int **board, int row, int col) {
   return moves;
 }
 
-Moves *get_king_moves(int **board, int row, int col) {
+Moves *get_king_moves(Board *board, int row, int col) {
   Moves *moves;
   INIT_MOVES(moves);
-  bool is_white = is_white_piece(board[row][col]);
+  bool is_white = is_white_piece(board->current[row][col]);
 
   int y[] = { -1, -1, -1, 0, 0, 1, 1, 1 };
   int x[] = { -1, 0, 1, -1, 1, -1, 0, 1 };
   for (int i = 0; i < MAX_KING_MOVES; i++) {
     if (is_in_board_limit(row + y[i]) && is_in_board_limit(col + x[i])) {
-      if (is_empty(board[row + y[i]][col + x[i]]) ||
-          (!is_empty(board[row + y[i]][col + x[i]]) && is_white != is_white_piece(board[row + y[i]][col + x[i]])))
+      if (is_empty(board->current[row + y[i]][col + x[i]]) ||
+          (!is_empty(board->current[row + y[i]][col + x[i]]) && is_white != is_white_piece(board->current[row + y[i]][col + x[i]])))
         ADD_MOVE(moves, row + y[i], col + x[i]);
     }
   }
@@ -487,12 +526,12 @@ Moves *get_king_moves(int **board, int row, int col) {
   return moves;
 }
 
-bool is_in_check(int **cur_board, int **prev_board, const bool is_white_turn, int king_row, int king_col) {
+bool is_in_check(Board *board) {
   for (int i = 0; i < 8; i++) {
     for (int j = 0; j < 8; j++) {
-      if (is_white_turn == is_white_piece(cur_board[i][j]) || is_empty(cur_board[i][j])) continue;
-      Moves *moves = get_moves(cur_board, prev_board, cur_board[i][j], i, j);
-      if (is_in_moves(moves, king_row, king_col)) {
+      if (board->is_white_turn == is_white_piece(board->current[i][j]) || is_empty(board->current[i][j])) continue;
+      Moves *moves = get_moves(board, board->current[i][j], i, j);
+      if (is_in_moves(moves, board->is_white_turn ? board->white_king_row : board->black_king_row, board->is_white_turn ? board->white_king_col : board->black_king_col)) {
         MOVES_DESTROY(moves);
         return true;
       }

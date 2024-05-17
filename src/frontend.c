@@ -102,10 +102,10 @@ void highlight_tile(const Program *program, const int row, const int col, const 
   }
 }
 
-void draw_pieces(const Program *program, int **board) {
+void draw_pieces(const Program *program, Board *board) {
   for (int i = 0; i < 8; i++) {
     for (int j = 0; j < 8; j++) {
-      draw_piece(program, i, j, board[i][j]);
+      draw_piece(program, i, j, board->current[i][j]);
     }
   }
   wrefresh(program->board->win);
@@ -195,11 +195,11 @@ void draw_piece(const Program *program, const int row, const int col, const int 
   }
 }
 
-void update_board(const Program *program, int **cur_board, int **prev_board) {
+void update_board(const Program *program, Board *board) {
   for (int i = 0; i < 8; i++) {
     for (int j = 0; j < 8; j++) {
-      if (cur_board[i][j] != prev_board[i][j]) {
-        draw_piece(program, i, j, cur_board[i][j]);
+      if (board->current[i][j] != board->previous[i][j]) {
+        draw_piece(program, i, j, board->current[i][j]);
       }
     }
   }

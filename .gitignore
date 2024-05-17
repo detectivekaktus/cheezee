@@ -13,3 +13,4 @@ compile_commands.json
 *.o
 
 cheezee
+log

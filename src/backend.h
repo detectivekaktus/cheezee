@@ -54,29 +54,49 @@ typedef struct {
     free(obj);                                                                \
   } while (0)
 
+typedef struct {
+  int **current;
+  int **previous;
+  bool is_white_turn;
+  bool has_white_king_moved;
+  int white_king_row;
+  int white_king_col;
+  bool has_black_king_moved;
+  int black_king_row;
+  int black_king_col;
+  int game_state;
+} Board;
+
+#define CONTINUE  1 << 6
+#define STALEMATE 1 << 7
+#define CHECKMATE 1 << 8
+
 void play(Program *program);
-int **empty_board();
-int **stdboard();
-void write_board(int **source, int **destination);
-void free_board(int **board);
-int **make_move(int **board, int srow, int scol, int erow, int ecol, int *king_row, int *king_col);
-void play_move(int **cur_board, int **prev_board, int srow, int scol, int erow, int ecol, int *king_row, int *king_col);
-bool is_legal_move(int **cur_board, int **prev_board, int srow, int scol, int erow, int ecol, const bool is_white, int king_row, int king_col);
-bool is_valid_move(int **cur_board, int **prev_board, int srow, int scol, int erow, int ecol);
-bool is_valid_pawn_move(int **cur_board, int **prev_board, int srow, int scol, int erow, int ecol);
-bool is_valid_knight_move(int **board, int srow, int scol, int erow, int ecol);
-bool is_valid_bishop_move(int **board, int srow, int scol, int erow, int ecol);
-bool is_valid_rook_move(int **board, int srow, int scol, int erow, int ecol);
-bool is_valid_king_move(int **board, int srow, int scol, int erow, int ecol);
-void traverse_axis(Moves *moves, int **board, int row, int col, const int deltarow, const int deltacol, const bool is_white);
-Moves *get_moves(int **cur_board, int **prev_board, const int piece, int row, int col);
-Moves *get_pawn_moves(int **cur_board, int **prev_board, int row, int col);
-Moves *get_knight_moves(int **board, int row, int col);
-Moves *get_bishop_moves(int **board, int row, int col);
-Moves *get_rook_moves(int **board, int row, int col);
-Moves *get_queen_moves(int **board, int row, int col);
-Moves *get_king_moves(int **board, int row, int col);
-bool is_in_check(int **cur_board, int **prev_board, const bool is_white, int king_row, int king_col);
+Board *start_board();
+void copy_board(const Board *source, Board *destination);
+void delete_board(Board *board);
+int **empty_matrix();
+int **stdmatrix();
+void write_matrix(int **source, int **destination);
+void free_matrix(int **board);
+Board *make_move(Board *board, int srow, int scol, int erow, int ecol);
+void play_move(Board *board, int srow, int scol, int erow, int ecol);
+bool is_legal_move(Board *board, int srow, int scol, int erow, int ecol);
+bool is_valid_move(Board *board, int srow, int scol, int erow, int ecol);
+bool is_valid_pawn_move(Board *board, int srow, int scol, int erow, int ecol);
+bool is_valid_knight_move(Board *board, int srow, int scol, int erow, int ecol);
+bool is_valid_bishop_move(Board *board, int srow, int scol, int erow, int ecol);
+bool is_valid_rook_move(Board *board, int srow, int scol, int erow, int ecol);
+bool is_valid_king_move(Board *board, int srow, int scol, int erow, int ecol);
+void traverse_axis(Moves *moves, Board *board, int row, int col, const int deltarow, const int deltacol, const bool is_white);
+Moves *get_moves(Board *board, const int piece, int row, int col);
+Moves *get_pawn_moves(Board *board, int row, int col);
+Moves *get_knight_moves(Board *board, int row, int col);
+Moves *get_bishop_moves(Board *board, int row, int col);
+Moves *get_rook_moves(Board *board, int row, int col);
+Moves *get_queen_moves(Board *board, int row, int col);
+Moves *get_king_moves(Board *board, int row, int col);
+bool is_in_check(Board *board);
 bool is_in_board_limit(const int axis);
 bool can_move(const Moves *moves);
 bool is_in_moves(const Moves *moves, int row, int col);

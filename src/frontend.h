@@ -2,6 +2,7 @@
 #define CHEEZEE_FRONTEND__
 
 #include "cheezee.h"
+#include "backend.h"
 
 #define TILE_HEIGHT 5 
 #define TILE_WIDTH  15
@@ -34,9 +35,9 @@ void draw_tile(const Program *program, const char c);
 void draw_tile_ln(const Program *program, const char c);
 void draw_tile_row_col(const Program *program, const int row, const int col);
 void highlight_tile(const Program *program, const int row, const int col, const int color);
-void update_board(const Program *program, int **cur_board, int **prev_board);
+void update_board(const Program *program, Board *board);
 char *assign_piece(int piece);
-void draw_pieces(const Program *program, int **board);
+void draw_pieces(const Program *program, Board *board);
 void draw_piece(const Program *program, const int row, const int col, const int piece);
 bool is_white_tile(const int row, const int col);
 
