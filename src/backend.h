@@ -97,6 +97,8 @@ Moves *get_rook_moves(Board *board, int row, int col);
 Moves *get_queen_moves(Board *board, int row, int col);
 Moves *get_king_moves(Board *board, int row, int col);
 bool is_in_check(Board *board);
+bool has_legal_moves(Board *board);
+int update_game_state(Board *board);
 bool is_in_board_limit(const int axis);
 bool can_move(const Moves *moves);
 bool is_in_moves(const Moves *moves, int row, int col);

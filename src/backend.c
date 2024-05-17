@@ -152,6 +152,9 @@ void play(Program *program) {
         row = mrow;
         col = mcol;
         board->is_white_turn = !board->is_white_turn;
+        board->game_state = update_game_state(board);
+        if (board->game_state == STALEMATE) CRASH("STALEMATE.\n");
+        else if (board->game_state == CHECKMATE) CRASH("CHECKMATE.\n");
         break;
       }
       default: {
@@ -539,6 +542,34 @@ bool is_in_check(Board *board) {
     }
   }
   return false;
+}
+
+bool has_legal_moves(Board *board) {
+  for (int i = 0; i < 8; i++) {
+    for (int j = 0; j < 8; j++) {
+      if ((board->is_white_turn != is_white_piece(board->current[i][j])) || is_empty(board->current[i][j])) continue;
+
+      Moves *moves = get_moves(board, board->current[i][j], i, j);
+      if (!can_move(moves)) {
+        MOVES_DESTROY(moves);
+        continue;
+      }
+      for (size_t k = 0; k < moves->size; k++) {
+        if (is_legal_move(board, i, j, moves->elems[k][0], moves->elems[k][1])) {
+          MOVES_DESTROY(moves);
+          return true;
+        }
+      }
+      MOVES_DESTROY(moves);
+    }
+  }
+  return false;
+}
+
+int update_game_state(Board *board) {
+  if (!is_in_check(board) && !has_legal_moves(board)) return STALEMATE;
+  if (is_in_check(board) && !has_legal_moves(board)) return CHECKMATE;
+  return CONTINUE;
 }
 
 bool is_in_board_limit(const int axis) {
