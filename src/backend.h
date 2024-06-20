@@ -2,6 +2,7 @@
 #define CHEEZEE_BACKEND__
 
 #include "cheezee.h"
+#include "board.h"
 #include <math.h>
 
 #define WHITE  0
@@ -54,35 +55,17 @@ typedef struct {
     free(obj);                                                                \
   } while (0)
 
-typedef struct {
-  int **current;
-  int **previous;
-  bool is_white_turn;
-  bool has_white_king_moved;
-  int white_king_row;
-  int white_king_col;
-  bool has_black_king_moved;
-  int black_king_row;
-  int black_king_col;
-  int game_state;
-} Board;
-
 #define CONTINUE  1 << 6
 #define STALEMATE 1 << 7
 #define CHECKMATE 1 << 8
 
 void play(Program *program);
-Board *start_board();
-void copy_board(const Board *source, Board *destination);
-void delete_board(Board *board);
-int **empty_matrix();
-int **stdmatrix();
-void write_matrix(int **source, int **destination);
-void free_matrix(int **board);
 Board *make_move(Board *board, int srow, int scol, int erow, int ecol);
 void play_move(Board *board, int srow, int scol, int erow, int ecol);
 bool is_legal_move(Board *board, int srow, int scol, int erow, int ecol);
 bool is_valid_move(Board *board, int srow, int scol, int erow, int ecol);
+bool is_valid_casteling_move(Board *board, int srow, int scol, int erow, int ecol);
+bool is_legal_casteling_move(Board *board, int srow, int scol, int erow, int ecol);
 bool is_valid_pawn_move(Board *board, int srow, int scol, int erow, int ecol);
 bool is_valid_knight_move(Board *board, int srow, int scol, int erow, int ecol);
 bool is_valid_bishop_move(Board *board, int srow, int scol, int erow, int ecol);

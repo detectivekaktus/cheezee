@@ -17,6 +17,13 @@
     exit(1);                                                                      \
   } while(0)
 
+#define LOG(msg, ...)                                                             \
+  do {                                                                            \
+    FILE *logfile = fopen(".log", "a");                                           \
+    fprintf(logfile, msg, ##__VA_ARGS__);                                         \
+    fclose(logfile);                                                              \
+  } while(0)
+
 #define ASSERT(cond, msg, ...)                                                    \
   do {                                                                            \
     if (!cond) {                                                                  \

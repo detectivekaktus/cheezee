@@ -1,7 +1,7 @@
 CC = gcc
 CFLAGS = -Wall -Wextra -Werror -pedantic -ggdb
-TARGETS = main.o frontend.o backend.o
-SOURCE = src/main.c src/frontend.c src/backend.c
+TARGETS = main.o frontend.o backend.o board.o
+SOURCE = src/main.c src/frontend.c src/backend.c src/board.c
 LIBS = -lncursesw -lm
 
 all: $(TARGETS)

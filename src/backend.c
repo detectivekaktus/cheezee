@@ -1,6 +1,8 @@
 #include "cheezee.h"
 #include "backend.h"
+#include "board.h"
 #include "frontend.h"
+#include <stdbool.h>
 
 void play(Program *program) {
   WIN *help;
@@ -172,100 +174,6 @@ void play(Program *program) {
   delete_board(board);
 }
 
-Board *start_board() {
-  Board *board = malloc(sizeof(Board));
-  if (board == NULL) CRASH("buy more RAM lol");
-  board->current = stdmatrix();
-  board->previous = empty_matrix();
-  board->is_white_turn = true;
-  board->has_white_king_moved = false;
-  board->white_king_row = 7;
-  board->white_king_col = 4;
-  board->has_black_king_moved = false;
-  board->black_king_row = 0;
-  board->black_king_col = 4;
-  board->game_state = CONTINUE;
-  return board;
-}
-
-void copy_board(const Board *source, Board *destination) {
-  destination->current = empty_matrix();
-  write_matrix(source->current, destination->current);
-  destination->previous = empty_matrix();
-  write_matrix(source->previous, destination->previous);
-  destination->is_white_turn = source->is_white_turn;
-  destination->has_white_king_moved = source->has_white_king_moved;
-  destination->white_king_row = source->white_king_row;
-  destination->white_king_col = source->white_king_col;
-  destination->has_black_king_moved = source->has_black_king_moved;
-  destination->black_king_row = source->black_king_row;
-  destination->black_king_col = source->black_king_col;
-  destination->game_state = source->game_state;
-}
-
-void delete_board(Board *board) {
-  free_matrix(board->current);
-  free_matrix(board->previous);
-  free(board);
-}
-
-int **empty_matrix() {
-  int **board = calloc(8, sizeof(int *));
-  if (board == NULL) CRASH("buy more RAM lol");
-  for (int i = 0; i < 8; i++) {
-    board[i] = calloc(8, sizeof(int));
-    if (board[i] == NULL) CRASH("buy more RAM lol");
-  }
-  return board;
-}
-
-int **stdmatrix() {
-  int **board = calloc(8, sizeof(int *));
-  if (board == NULL) CRASH("buy more RAM lol");
-  for (int i = 0; i < 8; i++) {
-    board[i] = calloc(8, sizeof(int));
-    if (board[i] == NULL) CRASH("buy more RAM lol");
-  }
-  board[0][0] = BLACK + ROOK;
-  board[0][1] = BLACK + KNIGHT;
-  board[0][2] = BLACK + BISHOP;
-  board[0][3] = BLACK + QUEEN;
-  board[0][4] = BLACK + KING;
-  board[0][5] = BLACK + BISHOP;
-  board[0][6] = BLACK + KNIGHT;
-  board[0][7] = BLACK + ROOK;
-  for (int i = 0; i < 8; i++) {
-    board[1][i] = BLACK + PAWN;
-  }
-
-  for (int i = 0; i < 8; i++) {
-    board[6][i] = WHITE + PAWN;
-  }
-  board[7][0] = WHITE + ROOK;
-  board[7][1] = WHITE + KNIGHT;
-  board[7][2] = WHITE + BISHOP;
-  board[7][3] = WHITE + QUEEN;
-  board[7][4] = WHITE + KING;
-  board[7][5] = WHITE + BISHOP;
-  board[7][6] = WHITE + KNIGHT;
-  board[7][7] = WHITE + ROOK;
-  return board;
-}
-
-void write_matrix(int **source, int **destination) {
-  for (int i = 0; i < 8; i++) {
-    for (int j = 0; j < 8; j++) {
-      destination[i][j] = source[i][j];
-    }
-  }
-}
-
-void free_matrix(int **board) {
-  for (int i = 0; i < 8; i++) {
-    free(board[i]);
-  }
-  free(board);
-}
 
 Board *make_move(Board *board, int srow, int scol, int erow, int ecol) {
   Board *move_made = malloc(sizeof(Board));
@@ -285,19 +193,57 @@ Board *make_move(Board *board, int srow, int scol, int erow, int ecol) {
 
 void play_move(Board *board, int srow, int scol, int erow, int ecol) {
   write_matrix(board->current, board->previous);
+
+  if ((board->current[srow][scol] == KING || board->current[srow][scol] == KING + BLACK) &&
+    is_valid_casteling_move(board, srow, scol, erow, ecol)) {
+    int direction = ecol == 7 ? 1 : -1;
+    int king_col = board->is_white_turn ? board->white_king_col : board->black_king_col;
+    board->current[erow][king_col + 2 * direction] = board->is_white_turn ? KING : KING + BLACK;
+    board->current[erow][king_col + 2 * direction - direction] = board->is_white_turn ? ROOK : ROOK + BLACK;
+    board->current[srow][scol] = 0;
+    board->current[erow][ecol] = 0;
+
+    if (board->is_white_turn) {
+      board->white_king_row = erow;
+      board->white_king_col = king_col + 2 * direction;
+      board->has_white_king_moved = true;
+    } else {
+      board->black_king_row = erow;
+      board->black_king_col = king_col + 2 * direction;
+      board->has_black_king_moved = true;
+    }
+    return;
+  }
+
   if (board->current[srow][scol] == KING) {
     board->white_king_row = erow;
     board->white_king_col = ecol;
-  }
-  if (board->current[srow][scol] == KING + BLACK) {
+    board->has_white_king_moved = true;
+  } else if (board->current[srow][scol] == KING + BLACK) {
     board->black_king_row = erow;
     board->black_king_col = ecol;
+    board->has_black_king_moved = true;
   }
+  
+  if (scol == 0 && srow == 7) {
+    board->has_white_left_rook_moved = true;
+  } else if (scol == 7 && srow == 7) {
+    board->has_white_right_rook_moved = true;
+  } else if (scol == 0 && srow == 0) {
+    board->has_black_left_rook_moved = true;
+  } else if (scol == 7 && srow == 0) {
+    board->has_black_right_rook_moved = true;
+  }
+
   board->current[erow][ecol] = board->current[srow][scol];
   board->current[srow][scol] = 0;
 }
 
 bool is_legal_move(Board *board, int srow, int scol, int erow, int ecol) {
+  if ((board->current[srow][scol] == KING || board->current[srow][scol] == KING + BLACK) &&
+    is_valid_casteling_move(board, srow, scol, erow, ecol) &&
+    !is_in_check(board)) return is_legal_casteling_move(board, srow, scol, erow, ecol);
+
   if (!is_valid_move(board, srow, scol, erow, ecol)) return false;
 
   if (is_in_check(board)) {
@@ -344,9 +290,40 @@ bool is_valid_move(Board *board, int srow, int scol, int erow, int ecol) {
       return is_valid_king_move(board, srow, scol, erow, ecol);
     }
     default: {
-      CRASH("Unexpected piece found during the move validation. Piece: %d", board->current[srow][scol]);
+      CRASH("Unexpected piece found during the move validation. Piece: %d\n", board->current[srow][scol]);
     }
   }
+}
+
+bool is_valid_casteling_move(Board *board, int srow, int scol, int erow, int ecol) {
+  if ((board->is_white_turn && board->has_white_king_moved) ||
+    (!board->is_white_turn && board->has_black_king_moved) ||
+    (board->is_white_turn && ecol == 7 && board->has_white_right_rook_moved) ||
+    (board->is_white_turn && ecol == 0 && board->has_white_left_rook_moved) ||
+    (!board->is_white_turn && ecol == 7 && board->has_black_right_rook_moved) ||
+    (!board->is_white_turn && ecol == 0 && board->has_black_left_rook_moved) ||
+    ((srow != 0 || srow != 7) && scol != 4)) return false;
+
+  int king_col = board->is_white_turn ? board->white_king_col : board->black_king_col;
+  int step = ecol == 7 ? 1 : -1;
+  for (int col = king_col + step; col != scol + 3 * step; col += step) {
+    if (!is_empty(board->current[erow][col])) return false;
+  }
+
+  return true;
+}
+
+bool is_legal_casteling_move(Board *board, int srow, int scol, int erow, int ecol) {
+  int king_col = board->is_white_turn ? board->white_king_col : board->black_king_col;
+  int step = ecol == 7 ? 1 : -1;
+  for (int col = king_col + step; col != scol + 3 * step; col += step) {
+    Board *move_made = make_move(board, srow, scol, erow, col);
+    bool result = is_in_check(move_made);
+    delete_board(move_made);
+    if (result) return false;
+  }
+
+  return true;
 }
 
 bool is_valid_pawn_move(Board *board, int srow, int scol, int erow, int ecol) {
@@ -427,7 +404,7 @@ Moves *get_moves(Board *board, const int piece, int row, int col) {
       return get_king_moves(board, row, col);
     }
     default: {
-      CRASH("Unexpected piece found during moves fetching. Piece: %d", piece);
+      CRASH("Unexpected piece found during moves fetching. Piece: %d\n", piece);
     }
   }
 }
