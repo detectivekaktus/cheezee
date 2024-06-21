@@ -2,7 +2,6 @@
 #include "backend.h"
 #include "board.h"
 #include "frontend.h"
-#include <stdbool.h>
 
 void play(Program *program) {
   WIN *help;
@@ -191,6 +190,17 @@ Board *make_move(Board *board, int srow, int scol, int erow, int ecol) {
   return move_made;
 }
 
+Board *make_en_passant_move(Board *board, int srow, int scol, int erow, int ecol) {
+  Board *move_made = malloc(sizeof(Board));
+  copy_board(board, move_made);
+
+  move_made->current[erow][ecol] = move_made->current[srow][scol];
+  move_made->current[srow][scol] = 0;
+  move_made->current[srow][ecol] = 0;
+
+  return move_made;
+}
+
 void play_move(Board *board, int srow, int scol, int erow, int ecol) {
   write_matrix(board->current, board->previous);
 
@@ -212,6 +222,12 @@ void play_move(Board *board, int srow, int scol, int erow, int ecol) {
       board->black_king_col = king_col + 2 * direction;
       board->has_black_king_moved = true;
     }
+    return;
+  }
+
+  if ((board->current[srow][scol] == PAWN || board->current[srow][scol] == PAWN + BLACK) &&
+    is_valid_en_passant_move(board, srow, scol, erow, ecol)) {
+    play_en_passant_move(board, srow, scol, erow, ecol);
     return;
   }
 
@@ -239,10 +255,20 @@ void play_move(Board *board, int srow, int scol, int erow, int ecol) {
   board->current[srow][scol] = 0;
 }
 
+void play_en_passant_move(Board *board, int srow, int scol, int erow, int ecol) {
+  board->current[erow][ecol] = board->current[srow][scol];
+  board->current[srow][scol] = 0;
+  board->current[srow][ecol] = 0;
+}
+
 bool is_legal_move(Board *board, int srow, int scol, int erow, int ecol) {
   if ((board->current[srow][scol] == KING || board->current[srow][scol] == KING + BLACK) &&
     is_valid_casteling_move(board, srow, scol, erow, ecol) &&
     !is_in_check(board)) return is_legal_casteling_move(board, srow, scol, erow, ecol);
+
+  if ((board->current[srow][scol] == PAWN || board->current[srow][scol] == PAWN + BLACK) &&
+    is_valid_en_passant_move(board, srow, scol, erow, ecol) &&
+    !is_in_check(board)) return is_legal_en_passant_move(board, srow, scol, erow, ecol);
 
   if (!is_valid_move(board, srow, scol, erow, ecol)) return false;
 
@@ -318,11 +344,31 @@ bool is_legal_casteling_move(Board *board, int srow, int scol, int erow, int eco
   int step = ecol == 7 ? 1 : -1;
   for (int col = king_col + step; col != scol + 3 * step; col += step) {
     Board *move_made = make_move(board, srow, scol, erow, col);
-    bool result = is_in_check(move_made);
+    if (is_in_check(move_made)) {
+      delete_board(move_made);
+      return false;
+    }
     delete_board(move_made);
-    if (result) return false;
   }
 
+  return true;
+}
+
+bool is_valid_en_passant_move(Board *board, int srow, int scol, int erow, int ecol) {
+  if ((board->is_white_turn && srow != 3) ||
+      (!board->is_white_turn && srow != 4) ||
+      (board->is_white_turn && erow != srow - 1 && (ecol != scol + 1 || ecol != scol - 1)) ||
+      (!board->is_white_turn && erow != srow + 1 && (ecol != scol + 1 || ecol != scol - 1))) return false;
+  return true;
+}
+
+bool is_legal_en_passant_move(Board *board, int srow, int scol, int erow, int ecol) {
+  Board *move_made = make_en_passant_move(board, srow, scol, erow, ecol);
+  if (is_in_check(move_made)) {
+    delete_board(move_made);
+    return false;
+  }
+  delete_board(move_made);
   return true;
 }
 
@@ -417,8 +463,7 @@ Moves *get_pawn_moves(Board *board, int row, int col) {
 
   if ((is_white && row == 6) || (!is_white && row == 1))
     if (is_empty(board->current[row + direction * 2][col])) ADD_MOVE(moves, row + direction * 2, col);
-  if (is_empty(board->current[row + direction][col]))
-    ADD_MOVE(moves, row + direction, col);
+  if (is_empty(board->current[row + direction][col])) ADD_MOVE(moves, row + direction, col);
   if (is_in_board_limit(col + 1) &&
     is_white != is_white_piece(board->current[row + direction][col + 1])) ADD_MOVE(moves, row + direction, col + 1);
   if (is_in_board_limit(col - 1) &&
@@ -568,7 +613,7 @@ bool is_in_moves(const Moves *moves, int row, int col) {
 }
 
 bool is_white_piece(const int piece) {
-  return piece - BLACK != abs(piece - BLACK);
+  return (piece - BLACK != abs(piece - BLACK)) && piece != 0;
 }
 
 bool is_empty(const int tile) {

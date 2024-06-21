@@ -145,11 +145,7 @@ void draw_piece(const Program *program, const int row, const int col, const int 
   bool is_white = is_white_piece(piece);
 
   wmove(program->board->win, row * TILE_HEIGHT + 1, col * TILE_WIDTH + 1);
-  if (is_white) {
-    piece_str = assign_piece(piece);
-  } else {
-    piece_str = assign_piece(piece - BLACK);
-  }
+  piece_str = assign_piece(is_white ? piece : is_empty(piece) ? 0 : piece - BLACK);
   
   if (strcmp(piece_str, "") == 0) {
     if (is_white_tile(row, col)) {

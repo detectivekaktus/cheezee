@@ -10,7 +10,7 @@ all: $(TARGETS)
 $(TARGETS):
 	$(CC) $(CFLAGS) -c $(SOURCE) $(LIBS)
 
-run: all
+rebuild: clean all
 	./cheezee
 
 clean:

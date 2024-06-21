@@ -61,11 +61,15 @@ typedef struct {
 
 void play(Program *program);
 Board *make_move(Board *board, int srow, int scol, int erow, int ecol);
+Board *make_en_passant_move(Board *board, int srow, int scol, int erow, int ecol);
 void play_move(Board *board, int srow, int scol, int erow, int ecol);
+void play_en_passant_move(Board *board, int srow, int scol, int erow, int ecol);
 bool is_legal_move(Board *board, int srow, int scol, int erow, int ecol);
 bool is_valid_move(Board *board, int srow, int scol, int erow, int ecol);
 bool is_valid_casteling_move(Board *board, int srow, int scol, int erow, int ecol);
 bool is_legal_casteling_move(Board *board, int srow, int scol, int erow, int ecol);
+bool is_valid_en_passant_move(Board *board, int srow, int scol, int erow, int ecol);
+bool is_legal_en_passant_move(Board *board, int srow, int scol, int erow, int ecol);
 bool is_valid_pawn_move(Board *board, int srow, int scol, int erow, int ecol);
 bool is_valid_knight_move(Board *board, int srow, int scol, int erow, int ecol);
 bool is_valid_bishop_move(Board *board, int srow, int scol, int erow, int ecol);
