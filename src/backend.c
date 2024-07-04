@@ -193,9 +193,9 @@ Board *make_move(Board *board, int srow, int scol, int erow, int ecol) {
 Board *make_en_passant_move(Board *board, int srow, int scol, int erow, int ecol) {
   Board *move_made = malloc(sizeof(Board));
   copy_board(board, move_made);
-  board->current[erow][ecol] = board->current[srow][scol];
-  board->current[srow][scol] = 0;
-  board->current[srow][ecol] = 0;
+  move_made->current[erow][ecol] = move_made->current[srow][scol];
+  move_made->current[srow][scol] = 0;
+  move_made->current[srow][ecol] = 0;
   return move_made;
 }
 
