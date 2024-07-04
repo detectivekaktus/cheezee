@@ -193,11 +193,9 @@ Board *make_move(Board *board, int srow, int scol, int erow, int ecol) {
 Board *make_en_passant_move(Board *board, int srow, int scol, int erow, int ecol) {
   Board *move_made = malloc(sizeof(Board));
   copy_board(board, move_made);
-
-  move_made->current[erow][ecol] = move_made->current[srow][scol];
-  move_made->current[srow][scol] = 0;
-  move_made->current[srow][ecol] = 0;
-
+  board->current[erow][ecol] = board->current[srow][scol];
+  board->current[srow][scol] = 0;
+  board->current[srow][ecol] = 0;
   return move_made;
 }
 
@@ -227,7 +225,9 @@ void play_move(Board *board, int srow, int scol, int erow, int ecol) {
 
   if ((board->current[srow][scol] == PAWN || board->current[srow][scol] == PAWN + BLACK) &&
     is_valid_en_passant_move(board, srow, scol, erow, ecol)) {
-    play_en_passant_move(board, srow, scol, erow, ecol);
+    board->current[erow][ecol] = board->current[srow][scol];
+    board->current[srow][scol] = 0;
+    board->current[srow][ecol] = 0;
     return;
   }
 
@@ -251,14 +251,15 @@ void play_move(Board *board, int srow, int scol, int erow, int ecol) {
     board->has_black_right_rook_moved = true;
   }
 
-  board->current[erow][ecol] = board->current[srow][scol];
-  board->current[srow][scol] = 0;
-}
+  if ((board->is_white_turn && board->current[srow][scol] == PAWN && erow == 0) ||
+    (!board->is_white_turn && board->current[srow][scol] == PAWN + BLACK && erow == 7)) {
+    board->current[erow][ecol] = board->is_white_turn ? QUEEN : QUEEN + BLACK;
+    board->current[srow][scol] = 0;
+    return;
+  }
 
-void play_en_passant_move(Board *board, int srow, int scol, int erow, int ecol) {
   board->current[erow][ecol] = board->current[srow][scol];
   board->current[srow][scol] = 0;
-  board->current[srow][ecol] = 0;
 }
 
 bool is_legal_move(Board *board, int srow, int scol, int erow, int ecol) {

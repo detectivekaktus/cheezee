@@ -63,7 +63,6 @@ void play(Program *program);
 Board *make_move(Board *board, int srow, int scol, int erow, int ecol);
 Board *make_en_passant_move(Board *board, int srow, int scol, int erow, int ecol);
 void play_move(Board *board, int srow, int scol, int erow, int ecol);
-void play_en_passant_move(Board *board, int srow, int scol, int erow, int ecol);
 bool is_legal_move(Board *board, int srow, int scol, int erow, int ecol);
 bool is_valid_move(Board *board, int srow, int scol, int erow, int ecol);
 bool is_valid_casteling_move(Board *board, int srow, int scol, int erow, int ecol);
