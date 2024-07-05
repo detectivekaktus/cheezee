@@ -1,6 +1,7 @@
 #include "frontend.h"
 #include "backend.h"
 #include "cheezee.h"
+#include <ncurses.h>
 
 void init_colors() {
   start_color();
@@ -205,3 +206,16 @@ void update_board(const Program *program, Board *board) {
 bool is_white_tile(const int row, const int col) {
   return (row + col) % 2 == 0;
 }
+
+WIN *display_event_window(WIN *parent, const char *msg, ...) {
+  va_list args;
+  va_start(args, msg);
+  WIN *win;
+  CREATE_CENTERED_WINDOW(parent, win, parent->y * 0.2, parent->x * 0.5);
+  box(win->win, 0, 0);
+  wmove(win->win, 2, 2);
+  vw_printw(win->win, msg, args);
+  va_end(args);
+  return win;
+}
+

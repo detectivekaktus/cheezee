@@ -40,5 +40,6 @@ char *assign_piece(int piece);
 void draw_pieces(const Program *program, Board *board);
 void draw_piece(const Program *program, const int row, const int col, const int piece);
 bool is_white_tile(const int row, const int col);
+WIN *display_event_window(WIN *parent, const char *msg, ...);
 
 #endif // CHEEZEE_FRONTEND__

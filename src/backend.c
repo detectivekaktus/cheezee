@@ -156,8 +156,18 @@ void play(Program *program) {
         col = mcol;
         board->is_white_turn = !board->is_white_turn;
         board->game_state = update_game_state(board);
-        if (board->game_state == STALEMATE) CRASH("STALEMATE.\n");
-        else if (board->game_state == CHECKMATE) CRASH("CHECKMATE.\n");
+        if (board->game_state == STALEMATE) {
+          WIN *stalemate = display_event_window(program->board, "The game has ended in stalemate.");
+          input = wgetch(stalemate->win);
+          input = 'q';
+          DESTROY_WINDOW(stalemate);
+        }
+        else if (board->game_state == CHECKMATE) {
+          WIN *checkmate = display_event_window(program->board, "This game has ended in checkmate for %s.", !board->is_white_turn ? "white" : "black");
+          input = wgetch(checkmate->win);
+          input = 'q';
+          DESTROY_WINDOW(checkmate);
+        }
         break;
       }
       default: {
