@@ -1,6 +1,8 @@
 #ifndef CHEEZEE_BOARD_H__
 #define CHEEZEE_BOARD_H__
 
+#include <stdbool.h>
+
 typedef struct {
   int **current;
   int **previous;

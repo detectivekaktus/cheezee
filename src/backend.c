@@ -2,12 +2,12 @@
 #include "backend.h"
 #include "board.h"
 #include "frontend.h"
+#include "logger.h"
 
 void play(Program *program) {
   WIN *help;
   WIN *help_text;
   WIN *log;
-  WIN *log_text;
 
   CREATE_WINDOW(help, ceil(program->y * 0.4), program->x - (TILE_WIDTH * 8 + 2), program->y - (program->y * 0.4), TILE_WIDTH * 8 + 2);
   CREATE_WINDOW(help_text, help->y * 0.8, help->x * 0.8, help->start_y + 2, help->start_x + 5);
@@ -24,13 +24,11 @@ void play(Program *program) {
   wrefresh(help_text->win);
 
   CREATE_WINDOW(log, program->y * 0.6, program->x - (TILE_WIDTH * 8 + 2), 0, TILE_WIDTH * 8 + 2);
-  CREATE_WINDOW(log_text, log->y * 0.8, log->x * 0.8, log->start_x + 5, log->start_y + 5);
-  mvwprintw(log->win, 1, 5, "Moves log");
   box(log->win, 0, 0);
   wrefresh(log->win);
-  wrefresh(log_text->win);
 
   Board *board = start_board();
+  Logger *logger = create_logger(board, log);
   int row = 0;
   int col = 0;
   int input;
@@ -147,6 +145,7 @@ void play(Program *program) {
         if (input == ESCAPE ||
           ((mrow == row) && (mcol == col)) ||
           !is_legal_move(board, row, col, mrow, mcol)) break;
+        log_move(logger, row, col, mrow, mcol);
         play_move(board, row, col, mrow, mcol);
         update_board(program, board);
         draw_tile_row_col(program, mrow, mcol);
@@ -178,9 +177,9 @@ void play(Program *program) {
   DESTROY_WINDOW(help);
   DESTROY_WINDOW(help_text);
   DESTROY_WINDOW(log);
-  DESTROY_WINDOW(log_text);
   DESTROY_WINDOW(program->board);
   delete_board(board);
+  free(logger);
 }
 
 
