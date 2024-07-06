@@ -14,4 +14,4 @@ $ make
 ```
 
 ## Contribution
-The codebase is a mess which was written with big delays and so it lack some feature, good logic and good skills of writing C code.
+The codebase is a mess which was written with big delays and so it lacks some modern C, good logic and good skills of writing C code.
