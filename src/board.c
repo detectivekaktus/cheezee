@@ -23,6 +23,11 @@ Board *start_board() {
   return board;
 }
 
+Board *board_from_fen(FenString *str) {
+  Board *board = malloc(sizeof(Board));
+  return board;
+}
+
 void copy_board(const Board *source, Board *destination) {
   destination->current = empty_matrix();
   write_matrix(source->current, destination->current);

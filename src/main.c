@@ -1,4 +1,5 @@
 #include "backend.h"
+#include "board.h"
 #include "cheezee.h"
 #include "frontend.h"
 #include "main.h"
@@ -26,7 +27,7 @@ void draw_options(const Program *program, char **options, int option) {
   wrefresh(program->main_menu->win);
 }
 
-int main(void) {
+int main(int argc, char**argv) {
   setlocale(LC_ALL, "");
   Program *program = malloc(sizeof(Program));
 
@@ -37,6 +38,12 @@ int main(void) {
   if (!has_colors() || !can_change_color()) CRASH("Your terminal does not support colors.\n");
   if (program->y < TILE_HEIGHT * 8 + 2 || program->x < TILE_WIDTH * 8 + 2) CRASH("Your viewport must be at least %dx%d to run this program. Try to zoom out or buy a new monitor.\n", TILE_HEIGHT * 8 + 2, TILE_WIDTH * 8 + 2);
   init_colors();
+
+  if (argc > 3)
+    CRASH("ERROR: Too many arguments specified.\n");
+  else if (argc == 3) {
+    CRASH("Not implemented.\n");
+  }
 
   WIN *main_menu;
   CREATE_CENTERED_WINDOW(program, main_menu, program->y * 0.5, program->x * 0.5);
@@ -95,7 +102,35 @@ int main(void) {
             break;
           }
           case FEN_POS: {
-            ASSERT(false, "not implemented.\n");
+            clear();
+            refresh();
+            WIN *input;
+            CREATE_CENTERED_WINDOW(program, input, program->y * 0.3, program->x * 0.8);
+            box(input->win, 0, 0);
+            mvwaddstr(input->win, 2, 5, "Input your FEN string character by character. If you don't want to type it out, use --fen flag when launching the program.");
+            wmove(input->win, 5, 5);
+            int key;
+            FenString *str;
+            FEN_START(str);
+            do {
+              key = wgetch(input->win);
+              if ((key == 8 || key == 127) && str->size > 1) {
+                FEN_POP(str);
+                mvwaddch(input->win, getcury(input->win), getcurx(input->win) - 1, ' ');
+                wmove(input->win, getcury(input->win), getcurx(input->win) - 1);
+              } else if (key > 31 && key < 127 && str->size != str->capacity) {
+                FEN_APPEND(str, key);
+                waddch(input->win, key);
+              }
+            } while(key != ENTER && key != ESCAPE);
+            if (key == ENTER) {
+              DESTROY_FEN(str);
+              CRASH("Not implemented.\n");
+            }
+            clear();
+            DESTROY_WINDOW(input);
+            refresh();
+            draw_options(program, menu_options, option);
             break;
           }
           case CREDITS: {
@@ -115,7 +150,7 @@ int main(void) {
             
             int key;
             do {
-              key = wgetch(credits->win);
+              int key = wgetch(credits->win);
             } while (key != ESCAPE && (key != 'Q' && key != 'q'));
             clear();
             DESTROY_WINDOW(credits);

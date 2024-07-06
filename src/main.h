@@ -11,6 +11,6 @@
 
 void finish(Program *program);
 void draw_options(const Program *program, char **options, int option);
-int main(void);
+int main(int argc, char **argv);
 
 #endif // CHEEZEE_MAIN__
