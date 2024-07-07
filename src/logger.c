@@ -12,21 +12,21 @@ Logger *create_logger(Board *board, WIN *log_win) {
 
 void log_move(Logger *logger, int srow, int scol, int erow, int ecol) {
   logger->move++;
-  MoveString *str = translate_move(logger, srow, scol, erow, ecol);
+  String *str = translate_move(logger, srow, scol, erow, ecol);
   if (logger->move == 1) {
-    mvwaddstr(logger->log_win->win, 2, 10, str->content);
+    mvwprintw(logger->log_win->win, 2, 10, "%zu. %s", logger->move, str->content);
     wrefresh(logger->log_win->win);
     DESTROY_STRING(str);
     return;
   }
-  if (logger->move % 2 != 0) {
-    mvwaddstr(logger->log_win->win, getcury(logger->log_win->win) + 2, 10, str->content);
-  } else if (logger->move % 2 == 0) {
-    mvwaddstr(logger->log_win->win, getcury(logger->log_win->win), getcurx(logger->log_win->win) + 5, str->content);
-  } else if (logger->log_win->y - getcury(logger->log_win->win) <= 10) {
+  if ((logger->log_win->y - getcury(logger->log_win->win) <= 10) && logger->move % 2 != 0) {
     wclear(logger->log_win->win);
     box(logger->log_win->win, 0, 0);
-    mvwaddstr(logger->log_win->win, 2, 10, str->content);
+    mvwprintw(logger->log_win->win, 2, 10, "%zu. %s", logger->move / 2 + 1, str->content);
+  } else if (logger->move % 2 != 0) {
+    mvwprintw(logger->log_win->win, getcury(logger->log_win->win) + 2, 10, "%zu. %s", logger->move / 2 + 1, str->content);
+  } else if (logger->move % 2 == 0) {
+    mvwaddstr(logger->log_win->win, getcury(logger->log_win->win), getcurx(logger->log_win->win) + 5, str->content);
   } else {
     mvwaddstr(logger->log_win->win, getcury(logger->log_win->win) + 2, 10, str->content);
   }
@@ -34,8 +34,8 @@ void log_move(Logger *logger, int srow, int scol, int erow, int ecol) {
   DESTROY_STRING(str);
 }
 
-MoveString *translate_move(Logger *logger, int srow, int scol, int erow, int ecol) {
-  MoveString *str;
+String *translate_move(Logger *logger, int srow, int scol, int erow, int ecol) {
+  String *str;
   CREATE_STRING(str);
 
   if (logger->board->current[srow][scol] != PAWN && logger->board->current[srow][scol] != PAWN + BLACK) {

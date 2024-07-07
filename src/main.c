@@ -1,5 +1,4 @@
 #include "backend.h"
-#include "board.h"
 #include "cheezee.h"
 #include "frontend.h"
 #include "main.h"
@@ -110,21 +109,21 @@ int main(int argc, char**argv) {
             mvwaddstr(input->win, 2, 5, "Input your FEN string character by character. If you don't want to type it out, use --fen flag when launching the program.");
             wmove(input->win, 5, 5);
             int key;
-            FenString *str;
-            FEN_START(str);
+            String *str;
+            CREATE_STRING(str);
             do {
               key = wgetch(input->win);
               if ((key == 8 || key == 127) && str->size > 1) {
-                FEN_POP(str);
+                STRING_POP(str);
                 mvwaddch(input->win, getcury(input->win), getcurx(input->win) - 1, ' ');
                 wmove(input->win, getcury(input->win), getcurx(input->win) - 1);
               } else if (key > 31 && key < 127 && str->size != str->capacity) {
-                FEN_APPEND(str, key);
+                STRING_APPEND(str, key);
                 waddch(input->win, key);
               }
             } while(key != ENTER && key != ESCAPE);
             if (key == ENTER) {
-              DESTROY_FEN(str);
+              DESTROY_STRING(str);
               CRASH("Not implemented.\n");
             }
             clear();

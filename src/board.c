@@ -23,7 +23,7 @@ Board *start_board() {
   return board;
 }
 
-Board *board_from_fen(FenString *str) {
+Board *board_from_fen(String *str) {
   Board *board = malloc(sizeof(Board));
   return board;
 }
