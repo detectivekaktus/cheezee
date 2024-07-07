@@ -113,7 +113,7 @@ int main(int argc, char**argv) {
             CREATE_STRING(str);
             do {
               key = wgetch(input->win);
-              if ((key == 8 || key == 127) && str->size > 1) {
+              if ((key == 8 || key == 127 || key == '\b') && str->size > 1) {
                 STRING_POP(str);
                 mvwaddch(input->win, getcury(input->win), getcurx(input->win) - 1, ' ');
                 wmove(input->win, getcury(input->win), getcurx(input->win) - 1);
