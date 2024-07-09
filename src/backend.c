@@ -144,7 +144,12 @@ void play(Program *program, Board *input_board) {
         } while (input != ESCAPE && input != ENTER);
         if (input == ESCAPE ||
           ((mrow == row) && (mcol == col)) ||
-          !is_legal_move(board, row, col, mrow, mcol)) break;
+          !is_legal_move(board, row, col, mrow, mcol)) {
+          draw_tile_row_col(program, mrow, mcol);
+          draw_piece(program, mrow, mcol, board->current[mrow][mcol]);
+          highlight_tile(program, mrow, mcol, is_white_tile(mrow, mcol) ? BOARD_WHITE : BOARD_BLACK);
+          break;
+        }
         log_move(logger, row, col, mrow, mcol);
         play_move(board, row, col, mrow, mcol);
         update_board(program, board);
