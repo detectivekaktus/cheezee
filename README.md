@@ -1,4 +1,7 @@
 # cheezee
+
+![Cheezee preview showing a chessboard position.](https://github.com/detectivekaktus/cheezee/blob/master/imgs/preview1.png)
+
 Cheezee (pronounced as cheese) is an ncurses chess client written for Linux. Play custom positions with FEN notation you can type in or pass as `--fen` argument to the client or play normal game from the standard position.
 
 The FEN position you enter is formatted in the following way: **BOARD WHO_TO_MOVE CASTELING**. For instance you can use **rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq** but not **rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1**.
