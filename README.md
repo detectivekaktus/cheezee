@@ -10,6 +10,8 @@ The client supports all legal moves in chess (including en-passant, casteling) a
 
 All the moves played are logged to the right hand side of the board with the standard notation except that the black pieces are annotated with lowercase letters.
 
+For users who have a trauma after using VIM or VIM-like editors, you can exit the program or some parts of the program by pressing Q or ESCAPE no matter where you are.
+
 ## Compilation
 In order to compile the program, you need to have a C compiler (either GCC or clang) and the ncurses library installed on your system.
 
