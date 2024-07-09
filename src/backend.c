@@ -4,7 +4,7 @@
 #include "frontend.h"
 #include "logger.h"
 
-void play(Program *program) {
+void play(Program *program, Board *input_board) {
   WIN *help;
   WIN *help_text;
   WIN *log;
@@ -27,7 +27,7 @@ void play(Program *program) {
   box(log->win, 0, 0);
   wrefresh(log->win);
 
-  Board *board = start_board();
+  Board *board = input_board == NULL ? start_board() : input_board;
   Logger *logger = create_logger(board, log);
   int row = 0;
   int col = 0;

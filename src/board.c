@@ -1,4 +1,6 @@
 #include "backend.h"
+#include "cheezee.h"
+#include <string.h>
 #include "board.h"
 
 Board *start_board() {
@@ -23,9 +25,140 @@ Board *start_board() {
   return board;
 }
 
-Board *board_from_fen(String *str) {
+Board *board_from_fen(char *str) {
   Board *board = malloc(sizeof(Board));
+  board->current = empty_matrix();
+  board->previous = empty_matrix();
+  int splits = 0;
+  char *piece = strtok(str, " ");
+  while (piece != NULL) {
+    splits++;
+    if (splits > 3) {
+      CRASH("FEN syntax error. Expected FEN string of type 'BOARD MOVE CASTELING'.\n");
+    } else if (splits == 1) {
+      parse_fen(piece, board);
+    } else if (splits == 2) {
+      board->is_white_turn = piece[0] == 'w';
+    } else if (splits == 3) {
+      parse_casteling(piece, board);
+    }
+    piece = strtok(NULL, " ");
+  }
+  board->game_state = CONTINUE;
   return board;
+}
+
+void parse_fen(const char *str, Board *board) {
+  int i = 0;
+  int row = 0;
+  int col = 0;
+  while (str[i] != '\0') {
+    switch (str[i]) {
+      case 'r': {
+        board->current[row][col] = ROOK + BLACK;
+        if (col < 7) col++;
+        break;
+      }
+      case 'R': {
+        board->current[row][col] = ROOK;
+        if (col < 7) col++;
+        break;
+      }
+      case 'n': {
+        board->current[row][col] = KNIGHT + BLACK;
+        if (col < 7) col++;
+        break;
+      }
+      case 'N': {
+        board->current[row][col] = KNIGHT;
+        if (col < 7) col++;
+        break;
+      }
+      case 'b': {
+        board->current[row][col] = BISHOP + BLACK;
+        if (col < 7) col++;
+        break;
+      }
+      case 'B': {
+        board->current[row][col] = BISHOP;
+        if (col < 7) col++;
+        break;
+      }
+      case 'q': {
+        board->current[row][col] = QUEEN + BLACK;
+        if (col < 7) col++;
+        break;
+      }
+      case 'Q': {
+        board->current[row][col] = QUEEN;
+        if (col < 7) col++;
+        break;
+      }
+      case 'k': {
+        board->black_king_col = col;
+        board->black_king_row = row;
+        board->current[row][col] = KING + BLACK;
+        if (col < 7) col++;
+        break;
+      }
+      case 'K': {
+        board->white_king_col = col;
+        board->white_king_row = row;
+        board->current[row][col] = KING;
+        if (col < 7) col++;
+        break;
+      }
+      case 'p': {
+        board->current[row][col] = PAWN + BLACK;
+        if (col < 7) col++;
+        break;
+      }
+      case 'P': {
+        board->current[row][col] = PAWN;
+        if (col < 7) col++;
+        break;
+      }
+      case '/': {
+        if (row == 7) CRASH("FEN syntax error. The board cannot be larger than 8x8.\n");
+        row++;
+        col = 0;
+        break;
+      }
+      default: {
+        if (str[i] > 48 && str[i] < 57) {
+          col += str[i] - 48;
+        } else {
+          CRASH("FEN syntax error. Unknown character '%c'\n", str[i]);
+        }
+      }
+    }
+    i++;
+  }
+}
+
+void parse_casteling(const char *str, Board *board) {
+  if (strchr(str, 'K') == NULL || strchr(str, 'Q') == NULL) {
+    board->has_white_king_casteled = true;
+    board->has_white_king_moved = true;
+    board->has_white_right_rook_moved = false;
+    board->has_white_left_rook_moved = false;
+  } else {
+    board->has_white_king_casteled = false;
+    board->has_white_king_moved = false;
+    board->has_white_right_rook_moved = false;
+    board->has_white_left_rook_moved = false;
+  }
+  if (strchr(str, 'k') == NULL || strchr(str, 'q') == NULL) {
+    board->has_black_king_casteled = true;
+    board->has_black_king_moved = true;
+    board->has_black_right_rook_moved = false;
+    board->has_black_left_rook_moved = false;
+  } else {
+    board->has_black_king_casteled = false;
+    board->has_black_king_moved = false;
+    board->has_black_right_rook_moved = false;
+    board->has_black_left_rook_moved = false;
+  }
 }
 
 void copy_board(const Board *source, Board *destination) {

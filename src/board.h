@@ -29,7 +29,9 @@ typedef struct {
 } Board;
 
 Board *start_board();
-Board *board_from_fen(String *str);
+Board *board_from_fen(char *str);
+void parse_fen(const char *str, Board *board);
+void parse_casteling(const char *str, Board *board);
 void copy_board(const Board *source, Board *destination);
 void delete_board(Board *board);
 int **empty_matrix();

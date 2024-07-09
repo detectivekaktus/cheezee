@@ -59,7 +59,7 @@ typedef struct {
 #define STALEMATE 1 << 7
 #define CHECKMATE 1 << 8
 
-void play(Program *program);
+void play(Program *program, Board *input_board);
 Board *make_move(Board *board, int srow, int scol, int erow, int ecol);
 Board *make_en_passant_move(Board *board, int srow, int scol, int erow, int ecol);
 void play_move(Board *board, int srow, int scol, int erow, int ecol);

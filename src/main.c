@@ -1,4 +1,5 @@
 #include "backend.h"
+#include "board.h"
 #include "cheezee.h"
 #include "frontend.h"
 #include "main.h"
@@ -41,7 +42,12 @@ int main(int argc, char**argv) {
   if (argc > 3)
     CRASH("ERROR: Too many arguments specified.\n");
   else if (argc == 3) {
-    CRASH("Not implemented.\n");
+    if (strcmp(argv[1], "--fen") != 0) {
+      CRASH("Unknown argument '%s'\n.", argv[1]);
+    }
+    Board *board = board_from_fen(argv[2]);
+    play(program, board);
+    refresh();
   }
 
   WIN *main_menu;
@@ -94,7 +100,7 @@ int main(int argc, char**argv) {
           case NEW_GAME: {
             clear();
             refresh();
-            play(program);
+            play(program, NULL);
             clear();
             refresh();
             draw_options(program, menu_options, option);
@@ -117,15 +123,16 @@ int main(int argc, char**argv) {
                 STRING_POP(str);
                 mvwaddch(input->win, getcury(input->win), getcurx(input->win) - 1, ' ');
                 wmove(input->win, getcury(input->win), getcurx(input->win) - 1);
-              } else if (key > 31 && key < 127 && str->size != str->capacity) {
+              } else if (key > 31 && key < 127) {
                 STRING_APPEND(str, key);
                 waddch(input->win, key);
               }
             } while(key != ENTER && key != ESCAPE);
             if (key == ENTER) {
-              DESTROY_STRING(str);
-              CRASH("Not implemented.\n");
+              Board *board = board_from_fen(str->content);
+              play(program, board);
             }
+            DESTROY_STRING(str);
             clear();
             DESTROY_WINDOW(input);
             refresh();
